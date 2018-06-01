@@ -21,13 +21,13 @@ import edu.np.ece.wetrack.model.Resident;
  */
 
 public class SendNotificationTask {
-    public static void sendNotification(Context context, String content) {
+    public static void sendNotification(Context context, String content) {//sending notification for internet & location services
 
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         String isNoti = sharedPref.getString("isNoti-WeTrack", "true");
 
-        if (isNoti.equals("true")) {
-            NotificationCompat.Builder builder =
+        if (isNoti.equals("true")) {//condition when notification is enabled
+            NotificationCompat.Builder builder =//create notification
                     new NotificationCompat.Builder(context)
                             .setContentTitle("Elderly Track")
                             .setContentText(content)
@@ -39,7 +39,7 @@ public class SendNotificationTask {
                                     .bigText(content))
                             .setAutoCancel(true);
 
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);//allow going into the list
             Intent intent = new Intent(context, MainActivity.class);
 
             stackBuilder.addNextIntent(intent);
@@ -57,16 +57,17 @@ public class SendNotificationTask {
 
     static int x = 999;
 
+    //below: notification when app detects missing patient
     public static void sendNotificationForDetected(Context context, Resident aResident, String msg) {
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         String isNoti = sharedPref.getString("isNoti-WeTrack", "true");
         String isLogin = sharedPref.getString("userToken-WeTrack", "");
 
-        if (isNoti.equals("true") && !isLogin.equals("")) {
+        if (isNoti.equals("true") && !isLogin.equals("")) {//condition when notification is enabled and there is user token
             NotificationCompat.Builder builder =
                     new NotificationCompat.Builder(context)
                             .setContentTitle("Elderly Track")
-                            .setContentText(aResident.getFullname() + " " + msg)
+                            .setContentText(aResident.getFullname() + " " + msg)//get name of the resident
                             .setSmallIcon(R.drawable.icon_noti)
                             .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
                                     R.mipmap.ic_launcher))
@@ -92,7 +93,7 @@ public class SendNotificationTask {
     }
 
 
-    public static void sendNotificationForFireBase(Context context, Resident aResident, String msg) {
+    public static void sendNotificationForFireBase(Context context, Resident aResident, String msg) {//notification for firebase
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         String isNoti = sharedPref.getString("isNoti-WeTrack", "true");
         String isLogin = sharedPref.getString("userToken-WeTrack", "");

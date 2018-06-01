@@ -1,7 +1,5 @@
 package edu.np.ece.wetrack;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,9 +17,6 @@ import android.view.ViewGroup;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +32,12 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static edu.np.ece.wetrack.BeaconScanActivation.patientList;
-import static edu.np.ece.wetrack.R.attr.layoutManager;
 //import static edu.np.ece.wetrack.MainActivity.homeAdapter;
 
 /**
  * Created by hoanglong on 06-Dec-16.
  */
-
+//Fragments are used for tabs
 public class HomeFragment extends Fragment {
     @BindView(R.id.rvMissingResident)
     RecyclerView rvResident;
@@ -74,6 +68,7 @@ public class HomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_home, container, false);
 //        tvTitle = (TextView) rootView.findViewById(R.id.tvTitle);
+        //BInd Views
         ButterKnife.bind(this, rootView);
 
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(rvResident.getContext(),
@@ -95,7 +90,7 @@ public class HomeFragment extends Fragment {
         handler = new Handler();
 
 
-        srlUser.setDistanceToTriggerSync(550);
+        srlUser.setDistanceToTriggerSync(550);//pull to refresh
         srlUser.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
             @Override
@@ -105,8 +100,10 @@ public class HomeFragment extends Fragment {
                     public void run() {
                         if (getContext() != null) {
                             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-                            String token = sharedPref.getString("userToken-WeTrack", "");
+                            String token = sharedPref.getString("userToken-WeTrack", "");//retrieving tokens
+                            //below: call th api to get the patient list
                             serverAPI.getPatientList("Bearer " + token).enqueue(new Callback<List<Resident>>() {
+                                //below: return the list
                                 @Override
                                 public void onResponse(Call<List<Resident>> call, Response<List<Resident>> response) {
                                     try {
@@ -116,7 +113,7 @@ public class HomeFragment extends Fragment {
                                         String jsonPatients = gson.toJson(patientList);
                                         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
                                         SharedPreferences.Editor editor = sharedPref.edit();
-                                        editor.putString("patientList-WeTrack", jsonPatients);
+                                        editor.putString("patientList-WeTrack", jsonPatients);//Refresh patient list in shared preference
                                         editor.commit();
 
                                     } catch (Exception e) {
@@ -138,21 +135,26 @@ public class HomeFragment extends Fragment {
 
 //                            MainActivity.homeAdapter = new HomeAdapter(missingPatientList);
 
-                            homeAdapter = new HomeAdapter(missingPatientList);
-
+                            homeAdapter = new HomeAdapter(missingPatientList);//for the missing patient list on the adapter
+                            //below: when there is patient on the patient list
                             if (patientList != null && !patientList.equals("") && patientList.size() > 0) {
+                                //for the patient in correspondence to the patient in the patient list from the server
                                 for (Resident aPatient : patientList) {
+                                    //below: for the beacon info that correspond with the the beacon info from the server
                                     for (BeaconInfo aBeacon : aPatient.getBeacons()) {
+                                        //if the patient is reported missing
                                         if (aPatient.getStatus() == 1 && aBeacon.getStatus() == 1 && aPatient.getBeacons() != null && aPatient.getBeacons().size() > 0) {
-
+                                            //below: condition when the missing patient is not on the list
                                             if (!missingPatientList.contains(aPatient)) {
-                                                missingPatientList.add(aPatient);
-                                            } else {
+                                                missingPatientList.add(aPatient);//add the patient to the list
+                                            } else {//when ther missing patient is already on the list
                                                 missingPatientList.set(missingPatientList.indexOf(aPatient), aPatient);
                                             }
 
-                                        } else {
+                                        } else {//if the patient is not missing
+                                            //below: the missing patient is still on the list (maybe found)
                                             if (missingPatientList.contains(aPatient)) {
+                                                //remove the patient from the list
                                                 missingPatientList.remove(aPatient);
 //                                            forDisplay.logToDisplay2();
                                             }
@@ -163,7 +165,7 @@ public class HomeFragment extends Fragment {
                             }
 
 //                            rvResident.setAdapter(MainActivity.homeAdapter);
-                            rvResident.setAdapter(homeAdapter);
+                            rvResident.setAdapter(homeAdapter);// set the listview
                             srlUser.setRefreshing(false);
                         }
 
@@ -185,8 +187,8 @@ public class HomeFragment extends Fragment {
 
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String token = sharedPref.getString("userToken-WeTrack", "");
-
+        String token = sharedPref.getString("userToken-WeTrack", "");//retrieve user token
+        //call the api to get the patient list from the server
         serverAPI.getPatientList("Bearer " + token).enqueue(new Callback<List<Resident>>() {
             @Override
             public void onResponse(Call<List<Resident>> call, Response<List<Resident>> response) {
@@ -249,10 +251,12 @@ public class HomeFragment extends Fragment {
         handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-
+                                    //if patient List is present
                                     if (patientList != null && !patientList.equals("") && patientList.size() > 0) {
+                                        //For all the patient correspond to the patient List
                                         for (Resident aPatient : patientList) {
                                             for (BeaconInfo aBeacon : aPatient.getBeacons()) {
+
                                                 if (aPatient.getStatus() == 1 && aBeacon.getStatus() == 1 && aPatient.getBeacons() != null && aPatient.getBeacons().size() > 0) {
 
                                                     if (!missingPatientList.contains(aPatient)) {

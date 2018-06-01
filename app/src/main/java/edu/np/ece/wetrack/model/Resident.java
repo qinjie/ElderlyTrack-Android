@@ -14,8 +14,8 @@ import java.util.List;
 
 public class Resident implements Parcelable {
 
-    @SerializedName("id")
-    private int id;
+    @SerializedName("id")//key
+    private int id; //variable
 
     @SerializedName("fullname")
     private String fullname;
@@ -38,6 +38,9 @@ public class Resident implements Parcelable {
     @SerializedName("remark")
     private String remark;
 
+    @SerializedName("hide_photo")
+    private int hidePhoto;
+
     @SerializedName("reported_at")
     private String reportedAt;
 
@@ -53,11 +56,11 @@ public class Resident implements Parcelable {
     @SerializedName("locations")
     private List<Location> locations = new ArrayList<Location>();
 
-    @SerializedName("latestLocation")
-    private List<Location> latestLocation = new ArrayList<Location>();
+   // @SerializedName("latestLocation")
+   // private List<Location> latestLocation = new ArrayList<Location>();
 
-    @SerializedName("locationHistories")
-    private List<Location> locationHistories = new ArrayList<Location>();
+    //@SerializedName("locationHistories")
+    //private List<Location> locationHistories = new ArrayList<Location>();
 
     public final static Parcelable.Creator<Resident> CREATOR = new Creator<Resident>() {
 
@@ -74,13 +77,14 @@ public class Resident implements Parcelable {
             instance.thumbnailPath = ((String) in.readValue((String.class.getClassLoader())));
             instance.status = ((Integer) in.readValue((Integer.class.getClassLoader())));
             instance.remark = ((String) in.readValue((String.class.getClassLoader())));
+            instance.hidePhoto = ((Integer) in.readValue(int.class.getClassLoader()));
             instance.reportedAt = ((String) in.readValue((String.class.getClassLoader())));
             instance.createdAt = ((String) in.readValue((String.class.getClassLoader())));
             in.readList(instance.beacons, (edu.np.ece.wetrack.model.BeaconInfo.class.getClassLoader()));
             in.readList(instance.relatives, (edu.np.ece.wetrack.model.Relative.class.getClassLoader()));
             in.readList(instance.locations, (edu.np.ece.wetrack.model.Location.class.getClassLoader()));
-            in.readList(instance.latestLocation, (edu.np.ece.wetrack.model.Location.class.getClassLoader()));
-            in.readList(instance.locationHistories, (edu.np.ece.wetrack.model.Location.class.getClassLoader()));
+           // in.readList(instance.latestLocation, (edu.np.ece.wetrack.model.Location.class.getClassLoader()));
+            //in.readList(instance.locationHistories, (edu.np.ece.wetrack.model.Location.class.getClassLoader()));
             return instance;
         }
 
@@ -149,8 +153,17 @@ public class Resident implements Parcelable {
         return remark;
     }
 
+    public int getHidePhoto() {
+        return hidePhoto;
+    }
+
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+
+    public void setHidePhoto(int hidePhoto) {
+        this.hidePhoto = hidePhoto;
     }
 
     public String getReportedAt() {
@@ -193,23 +206,25 @@ public class Resident implements Parcelable {
         this.locations = locations;
     }
 
-    public List<Location> getLatestLocation() {
-        return latestLocation;
-    }
-
-    public void setLatestLocation(List<Location> latestLocation) {
-        this.latestLocation = latestLocation;
-    }
 
 
+   // public List<Location> getLatestLocation() {
+        //return latestLocation;
+   // }
 
-    public List<Location> getLocationHistories() {
-        return locationHistories;
-    }
+  //  public void setLatestLocation(List<Location> latestLocation) {
+    //    this.latestLocation = latestLocation;
+    //}
 
-    public void setLocationHistories(List<Location> locationHistories) {
-        this.locationHistories = locationHistories;
-    }
+
+
+    //public List<Location> getLocationHistories() {
+      //  return locationHistories;
+    //}
+
+    //public void setLocationHistories(List<Location> locationHistories) {
+      //  this.locationHistories = locationHistories;
+    //}
 
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(id);
@@ -220,13 +235,13 @@ public class Resident implements Parcelable {
         dest.writeValue(thumbnailPath);
         dest.writeValue(status);
         dest.writeValue(remark);
+        dest.writeValue(hidePhoto);
         dest.writeValue(reportedAt);
         dest.writeValue(createdAt);
         dest.writeList(beacons);
         dest.writeList(relatives);
         dest.writeList(locations);
-        dest.writeList(latestLocation);
-        dest.writeList(locationHistories);
+      // dest.writeList(latestLocation);dest.writeList(locationHistories);
     }
 
     public int describeContents() {

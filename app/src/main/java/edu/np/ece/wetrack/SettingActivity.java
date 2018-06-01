@@ -34,31 +34,31 @@ public class SettingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_setting);
         ButterKnife.bind(this);
 
-        toolbar.setTitle("Setting");
+        toolbar.setTitle("Setting");//set header to settings
 
-
+        //Retrieve previous scanning & notification settings from shared preference
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
         String isScanning = sharedPref.getString("isScanning-WeTrack", "true");
         String isNoti = sharedPref.getString("isNoti-WeTrack", "true");
 
-        if (isScanning.equals("true")) {
-            btnScanning.setChecked(true);
-        } else {
-            btnScanning.setChecked(false);
+        if (isScanning.equals("true")) {//condition when the scanning settings is set to on
+            btnScanning.setChecked(true);//Show on toggle
+        } else {//condition when scanning settings is set to off
+            btnScanning.setChecked(false);//show off toggle
         }
 
         btnScanning.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                //getting ready to save preference
                 SharedPreferences.Editor editor = sharedPref.edit();
 
                 if (btnScanning.isChecked()) {
-                    editor.putString("isScanning-WeTrack", "true");
-                    initBluetooth();
+                    editor.putString("isScanning-WeTrack", "true");//save true to save preference
+                    initBluetooth();//initialize bluetooth/turn on bluetooth
                 } else {
-                    editor.putString("isScanning-WeTrack", "false");
+                    editor.putString("isScanning-WeTrack", "false");//save false to save preference
                 }
 
                 editor.commit();
@@ -66,22 +66,22 @@ public class SettingActivity extends AppCompatActivity {
             }
         });
 
-        if (isNoti.equals("true")) {
-            btnNoti.setChecked(true);
+        if (isNoti.equals("true")) {//condition when notification settings is set to to on
+            btnNoti.setChecked(true);//show on toggle
         } else {
-            btnNoti.setChecked(false);
+            btnNoti.setChecked(false);//show off toggle
         }
 
         btnNoti.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                //getting ready to save preference
                 SharedPreferences.Editor editor = sharedPref.edit();
 
                 if (btnNoti.isChecked()) {
-                    editor.putString("isNoti-WeTrack", "true");
+                    editor.putString("isNoti-WeTrack", "true");//save true to shared preference
                 } else {
-                    editor.putString("isNoti-WeTrack", "false");
+                    editor.putString("isNoti-WeTrack", "false");//save false to shared preference
                 }
 
                 editor.commit();
@@ -97,10 +97,10 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {//for the onscreen back button on the top left corner
         switch (item.getItemId()) {
             case android.R.id.home:
-                onBackPressed();
+                onBackPressed();//invoke onBackPressed()method
                 break;
         }
 
@@ -140,7 +140,7 @@ public class SettingActivity extends AppCompatActivity {
         finish();
     }
 
-    private void initBluetooth() {
+    private void initBluetooth() {//enable bluetooth
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (!bluetoothAdapter.isEnabled()) {
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);

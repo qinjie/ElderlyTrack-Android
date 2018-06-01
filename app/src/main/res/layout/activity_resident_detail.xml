@@ -254,6 +254,7 @@
 
 
                     <TextView
+                        android:id="@+id/tvDectectInfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="start"
@@ -271,6 +272,7 @@
 
 
                     <TextView
+                        android:id="@+id/tvBDetectInfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="start"
@@ -287,6 +289,7 @@
                         android:textSize="18sp" />
 
                     <TextView
+                        android:id="@+id/tvBLocationInfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="start"
@@ -303,6 +306,7 @@
                         android:textSize="18sp" />
 
                     <TextView
+                        android:id="@+id/tvBBelongInfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="start"

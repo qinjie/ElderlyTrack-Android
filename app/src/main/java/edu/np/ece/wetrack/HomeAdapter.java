@@ -1,6 +1,8 @@
 package edu.np.ece.wetrack;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +18,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
 import edu.np.ece.wetrack.api.Constant;
-import edu.np.ece.wetrack.model.Location;
 import edu.np.ece.wetrack.model.Resident;
 import edu.np.ece.wetrack.tasks.ImageLoadTask;
 
@@ -29,6 +30,10 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //    private LinkedHashMap<String, Double> beaconsMap = new LinkedHashMap<>();
     private List<Resident> residentList = new ArrayList<>();
     private Context context;
+    private SharedPreferences pref;
+    String Checkanonymous;
+
+
 
     public HomeAdapter(List<Resident> residentList) {
         this.residentList = residentList;
@@ -37,6 +42,10 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         context = parent.getContext();
+
+        pref = PreferenceManager.getDefaultSharedPreferences(context);
+        Checkanonymous = pref.getString("userRole-WeTrack","");
+
         View itemView;
         itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_resident, parent, false);
         return new HomeAdapter.BeaconViewHolder(itemView);
@@ -49,20 +58,49 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     private void bindResident(final Resident resident, final BeaconViewHolder viewHolder) {
-        viewHolder.tvPatient.setText(resident.getFullname());
-        if (resident.getLatestLocation() != null && resident.getLatestLocation().size() > 0) {
-            Location i = resident.getLatestLocation().get(0);
-            viewHolder.tvInfo.setText("Last seen at " + i.getCreatedAt());
-            viewHolder.tvLocation.setText(i.getAddress());
-        } else {
-            viewHolder.tvInfo.setText("No report yet");
+        //change 12/04
+        //Intent anonymous = new Intent();//new
+       // String checkIfAnonymous = anonymous.getStringExtra("anonymous");//new
+        //if(checkIfAnonymous.equals("5")){
+        //    viewHolder.tvPatient.setText("********");
+        //}
+       // else{
+        if(Checkanonymous.equals("5")){
+                viewHolder.tvPatient.setText("*********");
+            viewHolder.tvInfo.setText("Last seen at " + "(login to see more details)");
             viewHolder.tvLocation.setText("");
-        }
-
-        if (resident.getThumbnailPath() == null || resident.getThumbnailPath().equals("")) {
             viewHolder.ivAvatar.setImageResource(R.drawable.default_avt);
-        } else {
-            new ImageLoadTask(Constant.BACKEND_URL + resident.getThumbnailPath(), viewHolder.ivAvatar, context ).execute();
+
+        }
+        else{
+            viewHolder.tvPatient.setText(resident.getFullname());
+
+            //viewHolder.tvPatient.setText(resident.getFullname());
+        //}
+        //viewHolder.tvPatient.setText(resident.getFullname());
+           /* if (resident.getLatestLocation() != null && resident.getLatestLocation().size() > 0) {
+                Location i = resident.getLatestLocation().get(0);
+                viewHolder.tvInfo.setText("Last seen at " + i.getCreatedAt());
+                viewHolder.tvLocation.setText(i.getAddress());
+            }
+            else {
+                viewHolder.tvInfo.setText("No report yet");
+                viewHolder.tvLocation.setText("");
+            }*/ // 25/04
+
+            if (resident.getThumbnailPath() == null || resident.getThumbnailPath().equals("")) {
+                viewHolder.ivAvatar.setImageResource(R.drawable.default_avt);
+            }
+            else {
+            /*if(checkIfAnonymous.equals("5")){
+                viewHolder.ivAvatar.setImageResource(R.drawable.default_avt);
+            }
+            else {
+                new ImageLoadTask(Constant.BACKEND_URL + resident.getThumbnailPath(), viewHolder.ivAvatar, context ).execute();
+
+            }*/
+                new ImageLoadTask(Constant.BACKEND_URL + resident.getThumbnailPath(), viewHolder.ivAvatar, context ).execute();
+            }
         }
 
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {

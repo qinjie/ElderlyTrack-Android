@@ -9,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.amazonaws.mobile.client.AWSMobileClient;
+
 import butterknife.BindView;
 
 /**
@@ -26,11 +28,11 @@ public class LoadingActivity extends AppCompatActivity {
         public void handleMessage(android.os.Message msg) {
             Intent intent = new Intent();
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-            String userID = sharedPref.getString("userID-WeTrack", "");
-            if (userID.equals("")) {
+            String userID = sharedPref.getString("userID-WeTrack", "");//get user ID from sharepreference, if no user id, used ""
+            if (userID.equals("")) {//when there is no logins yet
                 intent.setClass(LoadingActivity.this, LoginActivity.class);
 
-            } else {
+            } else {//already logged in
                 intent.setClass(LoadingActivity.this, MainActivity.class);
 
             }
@@ -43,9 +45,11 @@ public class LoadingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
+        //below: connect to aws mobile client
+        AWSMobileClient.getInstance().initialize(this).execute();
 
 
-        mHandler.sendEmptyMessageDelayed(1, 2000);
+        mHandler.sendEmptyMessageDelayed(1, 2000);//delay 2secs
     }
 }
 

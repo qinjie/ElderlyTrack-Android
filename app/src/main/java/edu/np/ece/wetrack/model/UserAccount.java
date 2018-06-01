@@ -7,8 +7,8 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class UserAccount {
-    @SerializedName("result")
-    private String result;
+   //@SerializedName("result")
+    //private String result;
 
     @SerializedName("user_id")
     private int id;
@@ -19,28 +19,31 @@ public class UserAccount {
     @SerializedName("email")
     private String email;
 
-    @SerializedName("token")
-    private String token;
+   // @SerializedName("token")
+    //private String token;
 
     @SerializedName("role")
     private int role;
 
-    public UserAccount(String result, int id, String username, String email, String token, int role) {
-        this.result = result;
+    @SerializedName("status")
+    private String status;
+    public UserAccount(/*String result,*/ int id, String username, String email, /*String token,*/ int role, String status) {
+        //this.result = result;
         this.id = id;
         this.username = username;
         this.email = email;
-        this.token = token;
+        //this.token = token;
         this.role = role;
+        this.status = status;
     }
 
-    public String getResult() {
+    /*public String getResult() {
         return result;
-    }
+    }*/
 
-    public void setResult(String result) {
+    /*public void setResult(String result) {
         this.result = result;
-    }
+    }*/
 
     public int getId() {
         return id;
@@ -66,13 +69,13 @@ public class UserAccount {
         this.email = email;
     }
 
-    public String getToken() {
+    /*public String getToken() {
         return token;
-    }
+    }*/
 
-    public void setToken(String token) {
+    /*public void setToken(String token) {
         this.token = token;
-    }
+    }*/
 
     public int getRole() {
         return role;
@@ -81,4 +84,8 @@ public class UserAccount {
     public void setRole(int role) {
         this.role = role;
     }
+
+    public String getStatus(){return status;};
+    public void setStatus(String status){this.status = status;}
+
 }

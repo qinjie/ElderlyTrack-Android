@@ -5,7 +5,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -16,15 +15,15 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
-import edu.np.ece.wetrack.tasks.ImageLoadTask;
 import edu.np.ece.wetrack.api.Constant;
 import edu.np.ece.wetrack.model.BeaconInfo;
 import edu.np.ece.wetrack.model.Resident;
+import edu.np.ece.wetrack.tasks.ImageLoadTask;
 
 /**
  * Created by hoanglong on 10/06/2016.
  */
-
+//for the beacon and patient listView
 public class BeaconListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private List<Resident> patientList = new ArrayList<>();
@@ -35,16 +34,19 @@ public class BeaconListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         this.patientList = patientList;
         this.beaconList = beaconList;
     }
-
+    //Below: The RecyclerView widget is a more advanced and flexible version of ListView to display long list of items.
+    //USed for BeaconViewHolder for individual item views
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         this.context = parent.getContext();
         View itemView;
+        //below: the list item layout design which consists of patient name and the info such as location
         itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_beacon, parent, false);
         return new BeaconViewHolder(itemView);
 
     }
 
+    //below: the method for ViewHolder to bind it to the adapter when scroll out of the limited list
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         Resident patient = patientList.get(position);
@@ -52,23 +54,25 @@ public class BeaconListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         bindBeacon(patient, beacon, (BeaconViewHolder) holder);
     }
 
-
+//method for binding
     private void bindBeacon(final Resident patient, final BeaconInfo beacon, final BeaconViewHolder viewHolder) {
         viewHolder.tvPatient.setText(patient.getFullname());
         viewHolder.tvInfo.setText("is nearby.");
 
-        if (patient.getThumbnailPath() == null || patient.getThumbnailPath().equals("")) {
-            viewHolder.ivAvatar2.setImageResource(R.drawable.default_avt);
-        } else {
+        if (patient.getThumbnailPath() == null || patient.getThumbnailPath().equals("")) {//when there is no pic
+            viewHolder.ivAvatar2.setImageResource(R.drawable.default_avt);//set the default profile pic
+        } else {//otherwise load the pic
             new ImageLoadTask(Constant.BACKEND_URL+ patient.getThumbnailPath(), viewHolder.ivAvatar2, context).execute();
         }
 
 //        if (!TextUtils.isEmpty(patient.getThumbnailPath()))
 //            new ImageLoadTask( + patient.getThumbnailPath(), viewHolder.ivAvatar).execute();
 
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {//allow clicking on each viewHolder
             @Override
             public void onClick(View v) {
+                //ventBus allows publish-subscribe-style communication between components without requiring the components to explicitly register with one another (and thus be aware of each other)
+                //open the patient profile
                 EventBus.getDefault().post(new FragmentAdapter.OpenEvent(patientList.indexOf(patient), patient, "detectedList"));
             }
         });
@@ -89,6 +93,7 @@ public class BeaconListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         return beaconList.size();
     }
 
+    //below: Viewholder method for BeaconViewHolder
     public class BeaconViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.tvInfo)
         public TextView tvInfo;
@@ -105,7 +110,7 @@ public class BeaconListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
-    public void add(List<Resident> patientList, List<BeaconInfo> beaconList) {
+    public void add(List<Resident> patientList, List<BeaconInfo> beaconList) {//allow adding of batient and beaconlist
         this.patientList = patientList;
         this.beaconList = beaconList;
         notifyDataSetChanged();

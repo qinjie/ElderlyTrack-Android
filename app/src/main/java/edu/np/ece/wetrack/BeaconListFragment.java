@@ -1,6 +1,5 @@
 package edu.np.ece.wetrack;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -11,9 +10,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,7 +31,8 @@ public class BeaconListFragment extends Fragment {
 //    @BindView(R.id.srlUsers2)
 //    SwipeRefreshLayout srlUser;
 
-
+//ragment that displays a list of items by binding to a data source such as an array or Cursor,
+// and exposes event handlers when the user selects an item
     public static BeaconListFragment newInstance(String title) {
         Bundle args = new Bundle();
         args.putString("title", title);
@@ -56,6 +53,7 @@ public class BeaconListFragment extends Fragment {
         rvBeacons.addItemDecoration(dividerItemDecoration);
 
         rvBeacons.setLayoutManager(new LinearLayoutManager(getActivity().getBaseContext()));
+        //Below:Using the beaconListAdapter from MainActivity
         MainActivity.beaconListAdapter = new BeaconListAdapter(detectedPatientList, detectedBeaconList);
         rvBeacons.setAdapter(MainActivity.beaconListAdapter);
 

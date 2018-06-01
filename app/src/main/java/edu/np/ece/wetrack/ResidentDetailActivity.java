@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.view.MenuItem;
@@ -28,8 +27,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -78,7 +75,16 @@ public class ResidentDetailActivity extends AppCompatActivity {
 
     @BindView(R.id.remark)
     TextView remark;
-
+////new
+    @BindView(R.id.tvDectectInfo)
+    TextView tvDectectedInfo;
+    @BindView(R.id.tvBDetectInfo)
+    TextView tvBDectectInfo;
+    @BindView(R.id.tvBLocationInfo)
+    TextView tvBLocationInfo;
+    @BindView(R.id.tvBBelongInfo)
+    TextView tvBBelongInfo;
+/////
     private Handler handler;
 
     private ServerAPI serverAPI;
@@ -108,28 +114,29 @@ public class ResidentDetailActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        String token = sharedPref.getString("userToken-WeTrack", "");
+        String token = sharedPref.getString("userToken-WeTrack", "");//retrieving user token
 
-        final Resident patient = getIntent().getParcelableExtra("patient");
+        final Resident patient = getIntent().getParcelableExtra("patient");//retrieving patient from intent
 
-        if (token.equals("")) {
+        if (token.equals("")) {//when there is no token received
+            //go to loginActivity
             Intent intent = new Intent(getBaseContext(), LoginActivity.class);
-            intent.putExtra("whatParent", "yyy");
+            intent.putExtra("whatParent", "yyy");////?
             startActivity(intent);
-        } else {
+        } else {//condition when there is a token
             final ProgressDialog dialog = ProgressDialog.show(this, "We Track",
                     "Loading...Please wait...", true, false);
 
             serverAPI = RetrofitUtils.get().create(ServerAPI.class);
 
-            displayDetail(patient, dialog);
+            displayDetail(patient, dialog);//display the resident's info
 
-
+            //srlUser is the swipe refresh layout
             srlUser.setDistanceToTriggerSync(400);
             srlUser.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
                 @Override
-                public void onRefresh() {
+                public void onRefresh() {//pull to refresh
                     dialog.show();
 
                     displayDetail(patient, dialog);
@@ -155,25 +162,27 @@ public class ResidentDetailActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {//for the 3 vertical dot menu
         switch (item.getItemId()) {
             case android.R.id.home:
-                onBackPressed();
+                onBackPressed();//invoke the function of back button press
                 break;
         }
 
         return super.onOptionsItemSelected(item);
     }
-
-
+////////////////////////////////////////////start of method//////////////////////////////
+    //method to display patients info
     private void displayDetail(final Resident patient, final ProgressDialog dialog) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        //below: finalize and get the token from shared preference
         final String token = sharedPref.getString("userToken-WeTrack", "");
+        //calling api to get Patient list from the server
         serverAPI.getPatientList("Bearer " + token).enqueue(new Callback<List<Resident>>() {
             @Override
             public void onResponse(Call<List<Resident>> call, Response<List<Resident>> response) {
                 try {
-                    patientList = response.body();
+                    patientList = response.body();//retrieve the list from the response
 
                     Gson gson = new Gson();
                     String jsonPatients = gson.toJson(patientList);
@@ -193,6 +202,7 @@ public class ResidentDetailActivity extends AppCompatActivity {
                 Gson gson = new Gson();
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
                 String jsonPatients = sharedPref.getString("patientList-WeTrack", "");
+                //get new token
                 Type type = new TypeToken<List<Resident>>() {
                 }.getType();
                 patientList = gson.fromJson(jsonPatients, type);
@@ -205,60 +215,92 @@ public class ResidentDetailActivity extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                //below: when there is patient
                 if (patient != null) {
-
+                    //below: condition when there is patient
                     if (patientList != null && !patientList.equals("") && patientList.size() > 0) {
+                        //below: for the patient in correspondence to the patient in the list from the
                         for (final Resident aPatient : patientList) {
+                           //below: condition if the patient id is identical to the patientID from the Intent
                             if (aPatient.getId() == patient.getId()) {
-                                name.setText(aPatient.getFullname());
 
+                                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());//12/04
+                                final String userRole = sharedPref.getString("userRole-WeTrack", "");//12/04
+                                if(userRole.equals("5")){//new
+                                    name.setText("********");//set the name
+                                    tvDectectedInfo.setVisibility(View.GONE);
+                                    tvBDectectInfo.setVisibility(View.GONE);
+                                    tvBLocationInfo.setVisibility(View.GONE);
+                                    tvBBelongInfo.setVisibility(View.GONE);
+                                }
+                                else{//new
+                                    name.setText(aPatient.getFullname());//set the name
+                                }
+                                //name.setText(aPatient.getFullname());//set the name
+                                //below: condition when there is no profile pic
                                 if (aPatient.getThumbnailPath() == null || aPatient.getThumbnailPath().equals("")) {
-                                    avt.setImageResource(R.drawable.default_avt);
-                                } else {
-                                    new ImageLoadTask("http://128.199.93.67/WeTrack/backend/web/" + aPatient.getThumbnailPath().replace("thumbnail_",""), avt, getBaseContext()).execute();
+                                    avt.setImageResource(R.drawable.default_avt);//set to default pic
+                                }
+                                else {//condition when there is profile pic
+                                    if(userRole.equals("5")){//new
+                                        avt.setImageResource(R.drawable.default_avt);//set to default pic
+                                    }
+                                    else {//new
+                                        new ImageLoadTask("http://128.199.93.67/WeTrack/backend/web/" + aPatient.getThumbnailPath().replace("thumbnail_",""), avt, getBaseContext()).execute();
+
+                                    }
+                                    //below: load the image
+                                    //new ImageLoadTask("http://128.199.93.67/WeTrack/backend/web/" + aPatient.getThumbnailPath().replace("thumbnail_",""), avt, getBaseContext()).execute();
 //                                    avt.setMaxHeight(150);
 //                                    avt.setMaxWidth(150);
                                 }
 
-                                if (aPatient.getRemark().equals("")) {
-                                    remark.setText("None");
+                                if (aPatient.getRemark().equals("")) {//condition when there is no remarks
+                                    remark.setText("None");//set textview to no remarks to none
 
-                                } else {
-                                    remark.setText(aPatient.getRemark());
+                                } else {//condition when there is remark
+                                    remark.setText(aPatient.getRemark());//put in the remarks on textview
 
                                 }
+                                if(userRole.equals("5")){
+                                    nric.setVisibility(View.GONE);//new
+                                }
+                                else {
+                                    nric.setText(aPatient.getNric());//set the nric onn textview //new
 
-                                nric.setText(aPatient.getNric());
+                                }
+                                //nric.setText(aPatient.getNric());//set the nric onn textview
                                 String tmp = "";
-                                if (aPatient.getStatus() == 1) {
-                                    tmp = "Missing";
+                                if (aPatient.getStatus() == 1) {//condition for missing status
+                                    tmp = "Missing";//indicate missing
                                     //TODO
                                     toggleButton.setChecked(true);
-                                } else {
+                                } else {//condition when the patient is not missing
                                     tmp = "Available";
                                     //TODO
                                     toggleButton.setChecked(false);
                                 }
 
-                                status.setText(tmp);
+                                status.setText(tmp);//set the missing/available on the status textview
 
-                                final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                                String userID = sharedPref.getString("userID-WeTrack", "");
-                                if (userID.equals("0")) {
-                                    toggleButton.setVisibility(View.GONE);
-                                    statusArea.setVisibility(View.GONE);
-                                } else {
-                                    if (!userID.equals("")) {
+                                final SharedPreferences sharedPref2 = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                                String userID = sharedPref2.getString("userID-WeTrack", "");//get userID
+                                if (userID.equals("0")) {//when the user is annonymous
+                                    toggleButton.setVisibility(View.GONE);//remove the change status button
+                                    statusArea.setVisibility(View.GONE);// and the status area
+                                } else {//condition when the user is is registered user
+                                    if (!userID.equals("")) {//condition when the user have an id
+                                        //for  all the relative in correspondence to the relatives of the patient
                                         for (Relative aRelative : aPatient.getRelatives()) {
-                                            if (String.valueOf(aRelative.getId()).equals(userID)) {
-                                                toggleButton.setVisibility(View.VISIBLE);
+                                            if (String.valueOf(aRelative.getId()).equals(userID)) {//when this id is the relative of the patient
+                                                toggleButton.setVisibility(View.VISIBLE);//enablee button
                                                 statusArea.setVisibility(View.VISIBLE);
 
-                                                toggleButton.setOnClickListener(new View.OnClickListener() {
+                                                toggleButton.setOnClickListener(new View.OnClickListener() {//listener for the toggle button for the status
                                                     @Override
                                                     public void onClick(View v) {
-
-                                                        final String token = sharedPref.getString("userToken-WeTrack", "");
+                                                        //below: get user token
+                                                        final String token = sharedPref2.getString("userToken-WeTrack", "");
 
                                                         final Gson gson = new GsonBuilder()
                                                                 .setLenient()
@@ -281,29 +323,45 @@ public class ResidentDetailActivity extends AppCompatActivity {
 //                                                                        String dateObj = curFormatter.format(aDate);
 //                                                                        reportedAt.setText(dateObj);
 
-                                                                        if(input.getText().toString().equals(""))
+                                                                        if(input.getText().toString().equals(""))//if there is no remark
                                                                         {
                                                                             remark.setText("Unknown");
 
-                                                                        }else{
+                                                                        }else{//when there is remark
                                                                             remark.setText(input.getText().toString());
 
                                                                         }
 
-                                                                        aPatient.setRemark(input.getText().toString());
+                                                                        aPatient.setRemark(input.getText().toString());//set to Resident class
                                                                         JsonObject obj = gson.toJsonTree(aPatient).getAsJsonObject();
-
+                                                                        //call the api to send the changes of the patient status to the server
                                                                         serverAPI.changeStatus("Bearer " + token, "application/json", obj).enqueue(new Callback<Resident>() {
                                                                             @Override
                                                                             public void onResponse(Call<Resident> call, Response<Resident> response) {
+                                                                                //below: if the status of the resident is missing
                                                                                 if (status.getText().equals("Missing")) {
-                                                                                    status.setText("Available");
+                                                                                    status.setText("Available");///// not missing yet
                                                                                     remind.setVisibility(View.GONE);
-                                                                                } else {
+                                                                                    if(userRole.equals("5")){
+                                                                                        reportedAt.setVisibility(View.GONE);
+                                                                                        lastSeenBeacon.setVisibility(View.GONE);
+                                                                                        lastLocation.setVisibility(View.GONE);
+                                                                                    }
+                                                                                } else {//if the status of the resident is missing
                                                                                     status.setText("Missing");
-                                                                                    reportedAt.setText("Unknown");
-                                                                                    lastSeenBeacon.setText("Unknown");
-                                                                                    lastLocation.setText("Unknown");
+                                                                                    if(userRole.equals("5")){
+                                                                                        reportedAt.setVisibility(View.GONE);
+                                                                                        lastSeenBeacon.setVisibility(View.GONE);
+                                                                                        lastLocation.setVisibility(View.GONE);
+                                                                                    }
+                                                                                    else{
+                                                                                        reportedAt.setText("Unknown");
+                                                                                        lastSeenBeacon.setText("Unknown");
+                                                                                        lastLocation.setText("Unknown");
+                                                                                    }
+                                                                                   // reportedAt.setText("Unknown");
+                                                                                    //lastSeenBeacon.setText("Unknown");
+                                                                                    //lastLocation.setText("Unknown");
                                                                                     remind.setVisibility(View.VISIBLE);
                                                                                 }
 
@@ -321,7 +379,7 @@ public class ResidentDetailActivity extends AppCompatActivity {
                                                                 new DialogInterface.OnClickListener() {
                                                                     public void onClick(DialogInterface dialog, int which) {
                                                                         if (status.getText().equals("Missing")) {
-                                                                            toggleButton.setChecked(true);
+                                                                            toggleButton.setChecked(true);//toggle button allows to change status of patient
                                                                             remind.setVisibility(View.VISIBLE);
                                                                         } else {
                                                                             toggleButton.setChecked(false);
@@ -372,21 +430,29 @@ public class ResidentDetailActivity extends AppCompatActivity {
 
                                 String beacons = "";
 
-                                if (aPatient.getBeacons() != null && aPatient.getBeacons().size() > 0) {
-                                    for (BeaconInfo temp : aPatient.getBeacons()) {
+                                if (aPatient.getBeacons() != null && aPatient.getBeacons().size() > 0) {//when there is beacon
+                                    for (BeaconInfo temp : aPatient.getBeacons()) {//for a beaconInfo in correspondence to the patient beacon
+                                        //get info
                                         beacons += "\t► ID: " + temp.getId() + " ☼ Major: " + temp.getMajor() + " | Minor: " + temp.getMinor() + "\n";
                                     }
                                 }
-                                tvBeaconList.setText(beacons);
+                                if(userRole.equals("5")){
+                                    tvBeaconList.setVisibility(View.GONE);
+                                }
+                                else{
+                                    tvBeaconList.setText(beacons);
+
+                                }
+                                //tvBeaconList.setText(beacons);
 
 //                                reportedAt.setText(aPatient.getCreatedAt());
 
 
-                                if (aPatient.getLatestLocation().size() != 0) {
+                              /*  if (aPatient.getLatestLocation().size() != 0) {//when there is last location
                                     if (aPatient.getLatestLocation() != null && aPatient.getLatestLocation().size() > 0) {
                                         reportedAt.setText(aPatient.getLatestLocation().get(0).getCreatedAt());
 
-
+                                        //get the beacon  info
                                         String beaconDetected= "Unknown";
                                         if (aPatient.getBeacons() != null && aPatient.getBeacons().size() > 0) {
                                             for (BeaconInfo temp : aPatient.getBeacons()) {
@@ -396,20 +462,36 @@ public class ResidentDetailActivity extends AppCompatActivity {
                                             }
                                         }
 
-
-                                        lastSeenBeacon.setText(beaconDetected);
-
-
-                                        lastLocation.setText(aPatient.getLatestLocation().get(0).getAddress());
+                                        if(userRole.equals("5")){
+                                            reportedAt.setVisibility(View.GONE);
+                                            lastSeenBeacon.setVisibility(View.GONE);
+                                            lastLocation.setVisibility(View.GONE);
+                                        }
+                                        else {
+                                            lastSeenBeacon.setText(beaconDetected);
+                                            lastLocation.setText(aPatient.getLatestLocation().get(0).getAddress());
+                                        }
+                                        //lastSeenBeacon.setText(beaconDetected);
+                                       // lastLocation.setText(aPatient.getLatestLocation().get(0).getAddress());
                                     }
 
                                     uri = "http://maps.google.com/maps?q=loc:" + aPatient.getLatestLocation().get(0).getLatitude() + "," + aPatient.getLatestLocation().get(0).getLongitude() + " (" + aPatient.getFullname() + ")";
 
                                 } else {
-                                    reportedAt.setText("Unknown");
-                                    lastSeenBeacon.setText("Unknown");
-                                    lastLocation.setText("Unknown");
-                                }
+                                    if(userRole.equals("5")){
+                                        reportedAt.setVisibility(View.GONE);
+                                        lastSeenBeacon.setVisibility(View.GONE);
+                                        lastLocation.setVisibility(View.GONE);
+                                    }
+                                    else {
+                                        reportedAt.setText("Unknown");
+                                        lastSeenBeacon.setText("Unknown");
+                                        lastLocation.setText("Unknown");
+                                    }
+                                    //reportedAt.setText("Unknown");
+                                    //lastSeenBeacon.setText("Unknown");
+                                    //lastLocation.setText("Unknown");
+                                }*/ //25/04
                             }
 
                         }
@@ -424,7 +506,7 @@ public class ResidentDetailActivity extends AppCompatActivity {
 
 
     }
-
+/////////////////////////////End of method///////////////////////////////////////////////////////////
 //    @Override
 //    protected void onNewIntent(Intent intent) {
 //        final Resident patient = getIntent().getExtras().getParcelable("patient");
@@ -437,7 +519,7 @@ public class ResidentDetailActivity extends AppCompatActivity {
 
         Intent detailIntent = getIntent();
 
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);//go back to main activity
 
         Bundle c = new Bundle();
 
@@ -475,7 +557,7 @@ public class ResidentDetailActivity extends AppCompatActivity {
 
     }
 
-    @OnClick(R.id.openMap)
+    @OnClick(R.id.openMap)//for the map
     public void onUpdateClick() {
         if (uri != null && !uri.equals("") && !lastLocation.getText().equals("Unknown") ) {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));

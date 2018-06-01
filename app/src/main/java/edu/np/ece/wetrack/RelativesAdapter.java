@@ -1,7 +1,6 @@
 package edu.np.ece.wetrack;
 
 import android.content.Context;
-import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +17,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
 import edu.np.ece.wetrack.api.Constant;
-import edu.np.ece.wetrack.model.Location;
 import edu.np.ece.wetrack.model.Resident;
 import edu.np.ece.wetrack.tasks.ImageLoadTask;
 
@@ -52,14 +50,14 @@ public class RelativesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private void bindResident(final Resident resident, final RelativesAdapter.BeaconViewHolder viewHolder) {
         viewHolder.tvPatient.setText(resident.getFullname());
-        if (resident.getLatestLocation() != null && resident.getLatestLocation().size() > 0) {
+        /*if (resident.getLatestLocation() != null && resident.getLatestLocation().size() > 0) {
             Location i = resident.getLatestLocation().get(0);
             viewHolder.tvInfo.setText("Last seen at " + i.getCreatedAt());
             viewHolder.tvLocation.setText(i.getAddress());
         } else {
             viewHolder.tvInfo.setText("No report yet");
             viewHolder.tvLocation.setText("");
-        }
+        }*/ //25/04
 
         if (resident.getThumbnailPath() == null || resident.getThumbnailPath().equals("")) {
             viewHolder.ivAvatar.setImageResource(R.drawable.default_avt);
