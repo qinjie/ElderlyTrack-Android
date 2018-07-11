@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="5dp"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <ImageView
+        android:id="@+id/ivAvatar"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:contentDescription="Avatar"
+        android:paddingRight="10dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/thumbnail" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@id/ivAvatar"
+        android:gravity="center_vertical"
+        android:padding="2dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="tvTitle" />
+
+    <TextView
+        android:id="@+id/tvInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/tvTitle"
+        android:layout_toEndOf="@id/ivAvatar"
+        android:ellipsize="end"
+        android:lines="2"
+        android:padding="2dp"
+        android:textAlignment="textStart"
+        android:textSize="14sp"
+        android:textStyle="normal"
+        tools:text="tvInfo" />
+
+    <TextView
+        android:id="@+id/tvReportedAt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/tvInfo"
+        android:padding="2dp"
+        android:textAlignment="textEnd"
+        android:textSize="12sp"
+        tools:text="tvReportedAt" />
+
+</RelativeLayout>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <TextView
+        android:id="@+id/tvLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="2dp"
+        android:paddingBottom="2dp"
+        android:text="no label"
+        android:textColor="@android:color/black"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/tvMajorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/tvUuid"
+        android:layout_margin="2dp"
+        android:layout_marginEnd="10dp"
+        android:text="Major:" />
+
+    <TextView
+        android:id="@+id/tvMajor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvUuid"
+        android:layout_margin="2dp"
+        android:layout_marginEnd="10dp"
+        android:layout_toEndOf="@id/tvMajorLabel"
+        android:text="major_value" />
+
+    <TextView
+        android:id="@+id/tvMinorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvUuid"
+        android:layout_margin="2dp"
+        android:layout_toEndOf="@id/tvMajor"
+        android:paddingLeft="10dp"
+        android:text="Minor:" />
+
+    <TextView
+        android:id="@+id/tvMinor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvUuid"
+        android:layout_margin="2dp"
+        android:layout_toEndOf="@id/tvMinorLabel"
+        android:text="minor_value" />
+
+    <TextView
+        android:id="@+id/tvUuid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/tvLabel"
+        android:layout_margin="2dp"
+        android:text="UUID" />
+
+    <CheckedTextView
+        android:id="@+id/ctvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@id/tvLabel"
+        android:padding="2dp"
+        android:checkMark="@android:drawable/checkbox_on_background"
+        android:checked="false"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:textAlignment="gravity" />
+
+</RelativeLayout>

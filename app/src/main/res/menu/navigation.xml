@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_beacons"
+        android:icon="@drawable/baseline_bluetooth_audio_24"
+        android:title="@string/title_beacons" />
+
+    <item
+        android:id="@+id/navigation_nearby"
+        android:icon="@drawable/baseline_my_location_24"
+        android:title="@string/title_nearby" />
+
+    <item
+        android:id="@+id/navigation_missing"
+        android:icon="@drawable/baseline_not_listed_location_24"
+        android:title="@string/title_missing" />
+
+    <item
+        android:id="@+id/navigation_relative"
+        android:icon="@drawable/baseline_supervisor_account_24"
+        android:title="@string/title_relatives" />
+
+    <item
+        android:id="@+id/navigation_setting"
+        android:icon="@drawable/baseline_settings_black_24"
+        android:title="@string/title_settings" />
+
+</menu>
