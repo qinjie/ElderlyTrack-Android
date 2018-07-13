@@ -13,7 +13,7 @@
         <android.support.v7.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/recyclerview"
-            android:name="edu.np.ece.wetrack.MissingFragment"
+            android:name="edu.np.ece.elderlytrack.MissingFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"

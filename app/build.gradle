@@ -13,8 +13,8 @@ android {
     }
     compileSdkVersion 27
     defaultConfig {
-        applicationId "edu.np.ece.wetrack"
-        minSdkVersion 19
+        applicationId "edu.np.ece.elderlytrack"
+        minSdkVersion 21
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"

@@ -13,7 +13,7 @@
         <android.support.v7.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/list"
-            android:name="edu.np.ece.wetrack.RelativeFragment"
+            android:name="edu.np.ece.elderlytrack.RelativeFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"

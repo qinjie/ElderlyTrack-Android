@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.np.ece.wetrack">
+    package="edu.np.ece.elderlytrack">
 
     <uses-feature
         android:name="android.hardware.bluetooth"
