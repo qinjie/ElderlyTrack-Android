@@ -2,9 +2,11 @@ package edu.np.ece.wetrack;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,17 +21,14 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.wetrack.api.ApiInterface;
+import edu.np.ece.wetrack.api.ApiEventListRelativeResidents;
+import edu.np.ece.wetrack.api.ApiGateway;
 import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.ResidentWithMissing;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  */
@@ -40,6 +39,8 @@ public class RelativeFragment extends Fragment
 
     // Butter Knife
     Unbinder unbinder;
+    @BindView(R.id.swiperefreshlayout)
+    SwipeRefreshLayout swipeRefreshLayout;
     @BindView(R.id.progress_bar)
     ProgressBar progressBar;
     @BindView(R.id.list)
@@ -63,45 +64,62 @@ public class RelativeFragment extends Fragment
     }
 
 
-    private void apiRelativeResidents() {
-        BeaconApplication application = mListener.getBaseApplication();
-        ApiInterface apiInterface = mListener.getApiInterface();
+//    private void apiRelativeResidents() {
+//        BeaconApplication application = mListener.getBaseApplication();
+//        ApiInterface apiInterface = mListener.getApiInterface();
+//        if (!application.isInternetConnected) {
+//            Log.d(TAG, "No internet connection");
+//            return;
+//        }
+//        AuthToken authToken = application.getAuthToken(true);
+//        if(authToken == null) {
+//            Log.d(TAG, "Anonymous user");
+//            return;
+//        }
+//
+//        String token = authToken.getToken();
+//        Log.d(TAG, "token = " + token);
+//        EventBus.getDefault().post(new EventInProgress(true));
+//        apiInterface.listRelativeResidents(token).enqueue(new Callback<List<ResidentWithMissing>>() {
+//            @Override
+//            public void onResponse(Call<List<ResidentWithMissing>> call, Response<List<ResidentWithMissing>> response) {
+//                Log.d(TAG, call.request().toString());
+//                Log.d(TAG, response.toString());
+//
+//                if (response.isSuccessful()) {
+//                    Log.d(TAG, "Downloaded relative residents: " + response.body().toString());
+//                    residentList = new ArrayList<ResidentWithMissing>(response.body());
+//                    mAdapter.updateItems(residentList);
+//                } else {
+//                    if (response.code() == 401) {
+//                        Log.d(TAG, "Token expired.");
+//                        Toast.makeText(getContext(), "Token expired.", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//                EventBus.getDefault().post(new EventInProgress(false));
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
+//                Log.d(TAG, "API Error apiMissingResidents():" + t.getMessage());
+//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//                EventBus.getDefault().post(new EventInProgress(false));
+//            }
+//        });
+//    }
 
-        if (!application.isInternetConnected) {
-            Log.d(TAG, "No internet connection");
-            return;
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onApiEventListRelativeResidents(ApiEventListRelativeResidents event) {
+        Log.d(TAG, "onApiEventListRelativeResidents()");
+        if (event.isSuccessful()) {
+            Toast.makeText(getContext(), "List relative resident successful", Toast.LENGTH_SHORT).show();
+            residentList = new ArrayList<ResidentWithMissing>(event.getRelativeResidents());
+            mAdapter.updateItems(residentList);
         }
-
-        String token = application.getAuthToken(false).getToken();
-        Log.d(TAG, "token = " + token);
-        EventBus.getDefault().post(new EventInProgress(true));
-        apiInterface.listRelativeResidents(token).enqueue(new Callback<List<ResidentWithMissing>>() {
-            @Override
-            public void onResponse(Call<List<ResidentWithMissing>> call, Response<List<ResidentWithMissing>> response) {
-                Log.d(TAG, call.request().toString());
-                Log.d(TAG, response.toString());
-
-                if (response.isSuccessful()) {
-                    Log.d(TAG, "Downloaded relative residents: " + response.body().toString());
-                    residentList = new ArrayList<ResidentWithMissing>(response.body());
-                    mAdapter.updateItems(residentList);
-                } else {
-                    if (response.code() == 401) {
-                        Log.d(TAG, "Token expired.");
-                        Toast.makeText(getContext(), "Token expired.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                EventBus.getDefault().post(new EventInProgress(false));
-            }
-
-            @Override
-            public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
-                Log.d(TAG, "API Error apiMissingResidents():" + t.getMessage());
-                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                EventBus.getDefault().post(new EventInProgress(false));
-            }
-        });
+        progressBar.setVisibility(View.GONE);
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -116,10 +134,29 @@ public class RelativeFragment extends Fragment
         mAdapter = new RelativeRecyclerViewAdapter(context, residentList, this);
         mRecyclerView.setAdapter(mAdapter);
 
-        apiRelativeResidents();
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Toast.makeText(mListener.getBaseApplication(), "Refreshing", Toast.LENGTH_LONG).show();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean result = ApiGateway.apiListRelativeResidents();
+                        if (!result) {
+                            EventBus.getDefault().post(new EventInProgress(false));
+                        }
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 1000);
+            }
+        });
+
+        boolean result = ApiGateway.apiListRelativeResidents();
+        if (!result) {
+            progressBar.setVisibility(View.GONE);
+        }
         return view;
     }
-
 
     @Override
     public void onAttach(Context context) {

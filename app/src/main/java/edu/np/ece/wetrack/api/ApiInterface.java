@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 
 import java.util.List;
 
+import edu.np.ece.wetrack.model.ApiMessage;
 import edu.np.ece.wetrack.model.AuthToken;
 import edu.np.ece.wetrack.model.BeaconProfile;
 import edu.np.ece.wetrack.model.Location;
@@ -28,6 +29,12 @@ public interface ApiInterface {
 
     @POST("api/v1/user/login_with_email")
     Call<AuthToken> loginWithEmail(@Header("Content-Type") String contentType, @Body JsonObject user);
+
+    @POST("api/v1/user/forgot_password")
+    Call<ApiMessage> forgotPassword(@Header("Content-Type") String contentType, @Body JsonObject email);
+
+    @POST("api/v1/user/reset_password")
+    Call<AuthToken> resetPassword(@Header("Content-Type") String contentType, @Body JsonObject obj);
 
     @GET("api/v1/beacon/missing")
     Call<List<NearbyItem>> listMissingBeacons(@Header("Authorization") String token);

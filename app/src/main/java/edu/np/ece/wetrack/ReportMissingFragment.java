@@ -12,8 +12,6 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.gson.JsonObject;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -22,13 +20,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.wetrack.api.ApiInterface;
+import edu.np.ece.wetrack.api.ApiEventReportMissing;
+import edu.np.ece.wetrack.api.ApiGateway;
 import edu.np.ece.wetrack.api.EventInProgress;
-import edu.np.ece.wetrack.model.AuthToken;
-import edu.np.ece.wetrack.model.MissingWithResident;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ReportMissingFragment extends Fragment {
     private static final String TAG = ReportMissingFragment.class.getSimpleName();
@@ -82,9 +76,18 @@ public class ReportMissingFragment extends Fragment {
 
     @OnClick(R.id.btReport)
     public void onClickLogin(View view) {
-        apiReportMissing();
+        ApiGateway.apiReportMissing(this.residentId, etRemark.getText().toString());
     }
 
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onApiEventReportMissing(ApiEventReportMissing event) {
+        Log.d(TAG, "onApiEventReportMissing()");
+        if (event.isSuccessful()) {
+            Toast.makeText(getContext(), "Report missing successful", Toast.LENGTH_SHORT).show();
+            getActivity().onBackPressed();
+        }
+    }
 
     @Override
     public void onDestroyView() {
@@ -129,55 +132,55 @@ public class ReportMissingFragment extends Fragment {
     }
 
 
-    private void apiReportMissing() {
-        BeaconApplication application = mListener.getBaseApplication();
-        ApiInterface apiInterface = mListener.getApiInterface();
-        if (!application.isInternetConnected) {
-            Log.d(TAG, "No internet connection");
-            return;
-        }
-
-        AuthToken authoToken = application.getAuthToken(true);
-        if (authoToken == null || authoToken.getToken() == null) {
-            Log.e(TAG, "Token not found");
-            return;
-        }
-
-        String token = authoToken.getToken();
-        String contentType = "application/json";
-
-        JsonObject obj = new JsonObject();
-        obj.addProperty("resident_id", this.residentId);
-        obj.addProperty("remark", etRemark.getText().toString());
-        obj.addProperty("reported_by", authoToken.getUser().getId());
-
-        Log.d(TAG, obj.toString());
-        EventBus.getDefault().post(new EventInProgress(true));
-        apiInterface.reportMissingCase(token, contentType, obj).enqueue(new Callback<MissingWithResident>() {
-            @Override
-            public void onResponse(Call<MissingWithResident> call, Response<MissingWithResident> response) {
-                Log.d(TAG, call.request().toString());
-                int statusCode = response.code();
-                Log.d(TAG, response.toString());
-                if (response.isSuccessful()) {
-                    Toast.makeText(getContext(), "Report missing successful", Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new EventInProgress(false));
-                    // Go back to Resident Detail screen
-                    getActivity().onBackPressed();
-                } else {
-                    Log.d(TAG, "Token expired.");
-                    Toast.makeText(getContext(), "Report missing unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new EventInProgress(false));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<MissingWithResident> call, Throwable t) {
-                Log.d(TAG, "API Error:" + t.getMessage());
-                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
+//    private void apiReportMissing() {
+//        BeaconApplication application = mListener.getBaseApplication();
+//        ApiInterface apiInterface = mListener.getApiInterface();
+//        if (!application.isInternetConnected) {
+//            Log.d(TAG, "No internet connection");
+//            return;
+//        }
+//
+//        AuthToken authoToken = application.getAuthToken(true);
+//        if (authoToken == null || authoToken.getToken() == null) {
+//            Log.e(TAG, "Token not found");
+//            return;
+//        }
+//
+//        String token = authoToken.getToken();
+//        String contentType = "application/json";
+//
+//        JsonObject obj = new JsonObject();
+//        obj.addProperty("resident_id", this.residentId);
+//        obj.addProperty("remark", etRemark.getText().toString());
+//        obj.addProperty("reported_by", authoToken.getUser().getId());
+//
+//        Log.d(TAG, obj.toString());
+//        EventBus.getDefault().post(new EventInProgress(true));
+//        apiInterface.reportMissingCase(token, contentType, obj).enqueue(new Callback<MissingWithResident>() {
+//            @Override
+//            public void onResponse(Call<MissingWithResident> call, Response<MissingWithResident> response) {
+//                Log.d(TAG, call.request().toString());
+//                int statusCode = response.code();
+//                Log.d(TAG, response.toString());
+//                if (response.isSuccessful()) {
+//                    Toast.makeText(getContext(), "Report missing successful", Toast.LENGTH_SHORT).show();
+//                    EventBus.getDefault().post(new EventInProgress(false));
+//                    // Go back to Resident Detail screen
+//                    getActivity().onBackPressed();
+//                } else {
+//                    Log.d(TAG, "Token expired.");
+//                    Toast.makeText(getContext(), "Report missing unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
+//                    EventBus.getDefault().post(new EventInProgress(false));
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<MissingWithResident> call, Throwable t) {
+//                Log.d(TAG, "API Error:" + t.getMessage());
+//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
 
     @Override
     public void onResume() {

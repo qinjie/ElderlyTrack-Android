@@ -2,9 +2,11 @@ package edu.np.ece.wetrack;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,17 +21,14 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.wetrack.api.ApiInterface;
+import edu.np.ece.wetrack.api.ApiEventListMissingResidents;
+import edu.np.ece.wetrack.api.ApiGateway;
 import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.ResidentWithMissing;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * A fragment representing a list of Items.
@@ -41,6 +40,8 @@ public class MissingFragment extends Fragment
 
     // Butter Knife
     Unbinder unbinder;
+    @BindView(R.id.swiperefreshlayout)
+    SwipeRefreshLayout swipeRefreshLayout;
     @BindView(R.id.progress_bar)
     ProgressBar progressBar;
     @BindView(R.id.recyclerview)
@@ -64,46 +65,46 @@ public class MissingFragment extends Fragment
         return fragment;
     }
 
-    private void apiMissingResidents() {
-        BeaconApplication application = mListener.getBaseApplication();
-        ApiInterface apiInterface = mListener.getApiInterface();
-
-        if (!application.isInternetConnected) {
-            Log.d(TAG, "No internet connection");
-            return;
-        }
-
-        String token = application.getAuthToken(false).getToken();
-        Log.d(TAG, "token = " + token);
-        EventBus.getDefault().post(new EventInProgress(true));
-        apiInterface.listMissingResidents(token).enqueue(new Callback<List<ResidentWithMissing>>() {
-            @Override
-            public void onResponse(Call<List<ResidentWithMissing>> call, Response<List<ResidentWithMissing>> response) {
-                Log.d(TAG, call.request().toString());
-                Log.d(TAG, response.toString());
-
-                if (response.isSuccessful()) {
-                    Log.d(TAG, "Downloaded missing residents: " + response.body().toString());
-                    residentList = new ArrayList<ResidentWithMissing>(response.body());
-                    mAdapter.updateItems(residentList);
-                } else {
-                    if (response.code() == 401) {
-                        Log.d(TAG, "Token expired.");
-                        Toast.makeText(getActivity(), "Token expired.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                EventBus.getDefault().post(new EventInProgress(false));
-            }
-
-            @Override
-            public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
-                Log.d(TAG, "API Error apiMissingResidents():" + t.getMessage());
-                Toast.makeText(getActivity(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-
-                EventBus.getDefault().post(new EventInProgress(false));
-            }
-        });
-    }
+//    private void apiMissingResidents() {
+//        BeaconApplication application = mListener.getBaseApplication();
+//        ApiInterface apiInterface = mListener.getApiInterface();
+//
+//        if (!application.isInternetConnected) {
+//            Log.d(TAG, "No internet connection");
+//            return;
+//        }
+//
+//        String token = application.getAuthToken(false).getToken();
+//        Log.d(TAG, "token = " + token);
+//        EventBus.getDefault().post(new EventInProgress(true));
+//        apiInterface.listMissingResidents(token).enqueue(new Callback<List<ResidentWithMissing>>() {
+//            @Override
+//            public void onResponse(Call<List<ResidentWithMissing>> call, Response<List<ResidentWithMissing>> response) {
+//                Log.d(TAG, call.request().toString());
+//                Log.d(TAG, response.toString());
+//
+//                if (response.isSuccessful()) {
+//                    Log.d(TAG, "Downloaded missing residents: " + response.body().toString());
+//                    residentList = new ArrayList<ResidentWithMissing>(response.body());
+//                    mAdapter.updateItems(residentList);
+//                } else {
+//                    if (response.code() == 401) {
+//                        Log.d(TAG, "Token expired.");
+//                        Toast.makeText(getActivity(), "Token expired.", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//                EventBus.getDefault().post(new EventInProgress(false));
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
+//                Log.d(TAG, "API Error apiMissingResidents():" + t.getMessage());
+//                Toast.makeText(getActivity(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//
+//                EventBus.getDefault().post(new EventInProgress(false));
+//            }
+//        });
+//    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -119,7 +120,23 @@ public class MissingFragment extends Fragment
         mAdapter = new MissingRecyclerViewAdapter(context, residentList, this);
         mRecyclerView.setAdapter(mAdapter);
 
-        apiMissingResidents();
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Toast.makeText(mListener.getBaseApplication(), "Refreshing...", Toast.LENGTH_SHORT).show();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ApiGateway.apiListBeaconsOfMissing();
+                        ApiGateway.apiMissingResidents();
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 1000);
+            }
+        });
+
+        ApiGateway.apiMissingResidents();
+
         return view;
     }
 
@@ -165,6 +182,13 @@ public class MissingFragment extends Fragment
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onApiEventListMissingResidents(ApiEventListMissingResidents event) {
+        residentList = new ArrayList<>(event.getMissingResidents());
+        mAdapter.updateItems(residentList);
+        progressBar.setVisibility(View.GONE);
     }
 
     @Override

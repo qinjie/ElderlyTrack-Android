@@ -8,14 +8,14 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Address;
 import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.os.RemoteException;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -25,38 +25,39 @@ import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.log.CustomLogger;
 import com.google.gson.JsonObject;
 
+import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.Identifier;
+import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
-import org.altbeacon.beacon.service.RangedBeacon;
-import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import edu.np.ece.wetrack.api.ApiEventListBeaconsOfMissing;
 import edu.np.ece.wetrack.api.ApiEventLogin;
+import edu.np.ece.wetrack.api.ApiGateway;
 import edu.np.ece.wetrack.api.BeaconLocationJob;
 import edu.np.ece.wetrack.api.EventHasGpsLocation;
 import edu.np.ece.wetrack.api.EventNearbyMissingBeaconsFound;
 import edu.np.ece.wetrack.model.AuthToken;
 import edu.np.ece.wetrack.model.NearbyItem;
 import edu.np.ece.wetrack.receiver.NetworkChangedEvent;
+import edu.np.ece.wetrack.utils.GeoCoding;
 import edu.np.ece.wetrack.utils.UserSession;
 
 public class BeaconApplication extends Application
-        implements BootstrapNotifier, LocationListener {
+        implements BootstrapNotifier, RangeNotifier, LocationListener {
     public static final String TAG = BeaconApplication.class.getCanonicalName();
 
     private static BeaconApplication instance;
@@ -134,19 +135,22 @@ public class BeaconApplication extends Application
 
         // For cache of user session
         session = new UserSession(this);
+
+        // Fetch data from server
+        ApiGateway.apiListBeaconsOfMissing();
     }
 
     public ArrayList<Region> getRegions() {
-        Region region1 = new Region("ElderlyTrackEstimote",
+        Region region1 = new Region("ElderlyTrack-Estimote",
                 Identifier.parse("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null);
-        Region region2 = new Region("ElderlyTrackPolice",
+        Region region2 = new Region("ElderlyTrack-Police",
                 Identifier.parse("FDA50693-A4E2-4FB1-AFCF-C6EB07647825"), null, null);
-        Region region3 = new Region("ElderlyTrackSensoro",
+        Region region3 = new Region("ElderlyTrack-Sensoro",
                 Identifier.parse("4F4C9C21-03F3-457A-8A7F-5E0D09401654"), null, null);
         ArrayList<Region> regions = new ArrayList<Region>();
-        regions.add(region1);
         regions.add(region2);
         regions.add(region3);
+        regions.add(region1);
         return regions;
     }
 
@@ -180,9 +184,9 @@ public class BeaconApplication extends Application
 
     private void initBeaconManager() throws RemoteException {
         // Setup beacon manager
-        BeaconManager.setRssiFilterImplClass(RunningAverageRssiFilter.class);   //https://altbeacon.github.io/android-beacon-library/distance_vs_time.html
-        RunningAverageRssiFilter.setSampleExpirationMilliseconds(5000l);
-        RangedBeacon.setSampleExpirationMilliseconds(5000l);
+//        BeaconManager.setRssiFilterImplClass(RunningAverageRssiFilter.class);   //https://altbeacon.github.io/android-beacon-library/distance_vs_time.html
+//        RunningAverageRssiFilter.setSampleExpirationMilliseconds(5000l);
+//        RangedBeacon.setSampleExpirationMilliseconds(5000l);
 
         mBeaconManager = BeaconManager.getInstanceForApplication(getBaseContext());
         mBeaconManager.getBeaconParsers().add(
@@ -197,9 +201,9 @@ public class BeaconApplication extends Application
         mBeaconManager.setBackgroundScanPeriod(5000l);
         mBeaconManager.setBackgroundBetweenScanPeriod(5000l);
         mBeaconManager.setForegroundScanPeriod(5000l);
-        mBeaconManager.setForegroundBetweenScanPeriod(2000l);
+        mBeaconManager.setForegroundBetweenScanPeriod(5000l);
 
-        backgroundPowerSaver = new BackgroundPowerSaver(this);
+//        backgroundPowerSaver = new BackgroundPowerSaver(this);
         regionBootstrap = new RegionBootstrap(this, this.getRegions());
 //        regionBootstrap = new RegionBootstrap(this, region1);
         Log.i(TAG, "initBeaconManager(): successful");
@@ -209,14 +213,14 @@ public class BeaconApplication extends Application
     public void didEnterRegion(Region region) {
         Log.i(TAG, "BootstrapNotifier.didEnterRegion(): " + region.getUniqueId());
 
-//        try {
-//            Log.i(TAG, "Start ranging... ");
-//            mBeaconManager.startRangingBeaconsInRegion(region);
-//        } catch (RemoteException e) {
-//            if (BuildConfig.DEBUG) Log.d(TAG, "Failed to start ranging");
-//        }
+        try {
+            Log.i(TAG, "Start ranging... ");
+            mBeaconManager.addRangeNotifier(this);
+            mBeaconManager.startRangingBeaconsInRegion(region);
+        } catch (RemoteException e) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "Failed to start ranging");
+        }
 
-        //TODO
 //        // Start service to range beacon
 //        Intent intent_Start = new Intent(this, MyBeaconRangeService.class);
 //        Log.i(TAG, "Start service to range beacon");
@@ -320,10 +324,10 @@ public class BeaconApplication extends Application
         int JOB_ID = 12345;
         ComponentName serviceName = new ComponentName(this, ScheduleDownloadMissingBeacons.class);
         JobInfo jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
-//                .setMinimumLatency(5000)    // 任务最少延迟时间为5s
+//                .setMinimumLatency(5000)    // 任务最延迟时间为5s
 //                .setOverrideDeadline(60000) // 任务deadline，当到期没达到指定条件也会开始执行
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_NOT_ROAMING)// 需要满足网络条件，默认值NETWORK_TYPE_NONE
-                .setPeriodic(AlarmManager.INTERVAL_FIFTEEN_MINUTES) //循环执行，循环时长为一天（最小为15分钟）
+                .setPeriodic(AlarmManager.INTERVAL_HALF_HOUR) //循环执行，循环时长为一天（最小为15分钟）
                 .setRequiresCharging(false)// 需要满足充电状态
                 .setRequiresDeviceIdle(false)// 设备处于Idle(Doze)
                 .setPersisted(true) //设备重启后是否继续执行
@@ -349,6 +353,7 @@ public class BeaconApplication extends Application
     @Subscribe
     public void onEventHasGpsLocation(EventHasGpsLocation event) {
         Log.i(TAG, "onEvent(EventHasGpsLocation): " + event.toString());
+        Log.i(TAG, "nearbyMissingBeaconMap size = " + nearbyMissingBeaconMap.size());
         for (Map.Entry<String, NearbyItem> entry : nearbyMissingBeaconMap.entrySet()) {
             NearbyItem item = entry.getValue();
             JsonObject obj = new JsonObject();
@@ -438,42 +443,66 @@ public class BeaconApplication extends Application
         return lastKnownLocation;
     }
 
-    private String getAddress(Location location) {
-        Log.d(TAG, "getAddress()");
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        String result = null;
-        try {
-            List<Address> addressList = geocoder.getFromLocation(
-                    location.getLatitude(), location.getLongitude(), 1);
-            Log.d(TAG, "getAddresses(): " + addressList.toString());
-            if (addressList != null && addressList.size() > 0) {
-                Address address = addressList.get(0);
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
-                    sb.append(address.getAddressLine(i));
-                }
-                if (address.getLocality() != null)
-                    sb.append(",").append(address.getLocality());
-                if (address.getPostalCode() != null)
-                    sb.append(",").append(address.getPostalCode()).append("\n");
-                if (address.getCountryName() != null)
-                    sb.append(",").append(address.getCountryName());
-                result = sb.toString();
-                return result;
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "Unable connect to Geocoder", e);
-        }
-        return "";
-    }
+//    private String getAddress(Location location) {
+//        Log.d(TAG, "getAddress()");
+//        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+//        String result = null;
+//        try {
+//            List<Address> addressList = geocoder.getFromLocation(
+//                    location.getLatitude(), location.getLongitude(), 1);
+//            Log.d(TAG, "getAddresses(): " + addressList.toString());
+//            if (addressList != null && addressList.size() > 0) {
+//                Address address = addressList.get(0);
+//                StringBuilder sb = new StringBuilder();
+//                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+//                    sb.append(address.getAddressLine(i));
+//                }
+//                if (address.getLocality() != null)
+//                    sb.append(",").append(address.getLocality());
+//                if (address.getPostalCode() != null)
+//                    sb.append(",").append(address.getPostalCode()).append("\n");
+//                if (address.getCountryName() != null)
+//                    sb.append(",").append(address.getCountryName());
+//                result = sb.toString();
+//                return result;
+//            }
+//        } catch (IOException e) {
+//            Log.e(TAG, "Unable connect to Geocoder", e);
+//        }
+//        return "";
+//    }
 
     @Override
     public void onLocationChanged(Location location) {
         Log.i(TAG, "onLocationChanged() latitude = " + String.valueOf(location.getLatitude()));
-        String address = getAddress(location);
-        isGettingGps = false;
-        Log.i(TAG, "onLocationChanged() address = " + address);
-        EventBus.getDefault().post(new EventHasGpsLocation(location.getLatitude(), location.getLongitude(), address));
+
+        GeoCoding locationAddress = new GeoCoding();
+        locationAddress.getAddressFromLocation(location.getLatitude(), location.getLongitude(),
+                getApplicationContext(), new GeocoderHandler());
+    }
+
+    private class GeocoderHandler extends Handler {
+        @Override
+        public void handleMessage(Message message) {
+            String address = "";
+            double latitude = 0f, longitude = 0f;
+            switch (message.what) {
+                case 1:
+                    Bundle bundle = message.getData();
+                    address = bundle.getString("address");
+                    latitude = bundle.getDouble("latitude");
+                    longitude = bundle.getDouble("longitude");
+                    break;
+                default:
+                    address = "";
+                    latitude = 0f;
+                    longitude = 0f;
+            }
+
+            isGettingGps = false;
+            Log.i(TAG, "onLocationChanged() address = " + address);
+            EventBus.getDefault().post(new EventHasGpsLocation(latitude, longitude, address));
+        }
     }
 
     @Override
@@ -489,5 +518,34 @@ public class BeaconApplication extends Application
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    @Override
+    public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+        Log.d(TAG, "didRangeBeaconsInRegion(): " + region.getUniqueId());
+        if (beacons.size() <= 0) return;
+
+        // Get all nearby beacons to map of respective region
+        String key1 = "";
+        for (Beacon beacon : beacons) {
+            key1 = (beacon.getId1().toString() + ',' + beacon.getId2().toString() + ',' + beacon.getId3().toString()).toUpperCase();
+            Log.d(TAG, "Detect beacons: " + key1);
+            NearbyItem ni = allMissingBeaconMap.get(key1);
+            if (ni != null) {
+                Log.d(TAG, "Matched beacons: " + key1);
+                nearbyMissingBeaconMap.put(key1, ni);
+            }
+        }
+        if (!isGettingGps) {
+            requestLocation();
+        }
+
+        // Stop ranging
+        try {
+            mBeaconManager.stopRangingBeaconsInRegion(region);
+            mBeaconManager.removeRangeNotifier(this);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -25,6 +25,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -54,8 +55,10 @@ public class BeaconFragment extends Fragment
 
     BeaconRecyclerViewAdapter mAdapter;
 
+    // Save regions detected for each monitoring regions
+    Map<String, Map<String, Beacon>> nearbyBeaconsByRegion = new HashMap<>();
     // Beacons found nearby the phone
-    Map<String, Beacon> nearbyBeaconMap = new TreeMap<String, Beacon>();
+    Map<String, Beacon> nearbyBeaconMap = new TreeMap<>();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -183,16 +186,30 @@ public class BeaconFragment extends Fragment
     @Override
     public void onBeaconServiceConnect() {
         Log.d(TAG, "onBeaconServiceConnect()");
+        /* Each range is only for 1 region.
+            If there is multiple region added, it will range one by one depending on which region is detected.
+         */
         mBeaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 EventBus.getDefault().post(new EventInProgress(true));
-                // Get all nearby beacons
-                nearbyBeaconMap.clear();
+                // clear all beacons of this region
+                if (nearbyBeaconsByRegion.get(region.getUniqueId()) == null) {
+                    nearbyBeaconsByRegion.put(region.getUniqueId(), new HashMap<String, Beacon>());
+                } else {
+                    nearbyBeaconsByRegion.get(region.getUniqueId()).clear();
+                }
+                // Get all nearby beacons to map of respective region
                 for (Beacon beacon : beacons) {
                     Log.d(TAG, "Detect beacons: " + beacon.toString());
                     String key = (beacon.getId1().toString() + ',' + beacon.getId2().toString() + ',' + beacon.getId3().toString()).toUpperCase();
-                    nearbyBeaconMap.put(key, beacon);
+                    nearbyBeaconsByRegion.get(region.getUniqueId()).put(key, beacon);
+                }
+                Log.d(TAG, "Detect beacons: size = " + nearbyBeaconsByRegion.size());
+
+                nearbyBeaconMap.clear();
+                for (Map<String, Beacon> map : nearbyBeaconsByRegion.values()) {
+                    nearbyBeaconMap.putAll(map);
                 }
 
 //                // Get nearby missing beacons

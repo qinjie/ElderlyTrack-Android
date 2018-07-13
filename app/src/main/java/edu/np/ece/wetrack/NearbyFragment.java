@@ -66,12 +66,14 @@ public class NearbyFragment extends Fragment
 
     NearbyRecyclerViewAdapter mAdapter;
 
+    // Save regions detected for each monitoring regions
+    Map<String, Map<String, Beacon>> nearbyBeaconsRegionMaps = new HashMap<>();
     // Beacons found nearby the phone
-    Map<String, Beacon> nearbyBeaconMap = new HashMap<String, Beacon>();
+    Map<String, Beacon> nearbyBeaconMap = new HashMap<>();
     // Beacons of missing residents downloaded from server
-    Map<String, NearbyItem> allMissingBeaconMap = new HashMap<String, NearbyItem>();
+    Map<String, NearbyItem> allMissingBeaconMap = new HashMap<>();
     // Filtered list to be displayed in ListView
-    Map<String, NearbyItem> nearbyMissingBeaconMap = new TreeMap<String, NearbyItem>();
+    Map<String, NearbyItem> nearbyMissingBeaconMap = new TreeMap<>();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -225,12 +227,24 @@ public class NearbyFragment extends Fragment
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 EventBus.getDefault().post(new EventInProgress(true));
-                // Get all nearby beacons
-                nearbyBeaconMap.clear();
+                // clear all beacons of this region
+                if (nearbyBeaconsRegionMaps.get(region.getUniqueId()) == null) {
+                    nearbyBeaconsRegionMaps.put(region.getUniqueId(), new HashMap<String, Beacon>());
+                } else {
+                    nearbyBeaconsRegionMaps.get(region.getUniqueId()).clear();
+                }
+                // Get all nearby beacons to map of respective region
                 for (Beacon beacon : beacons) {
                     Log.d(TAG, "Detect beacons: " + beacon.toString());
                     String key = (beacon.getId1().toString() + ',' + beacon.getId2().toString() + ',' + beacon.getId3().toString()).toUpperCase();
-                    nearbyBeaconMap.put(key, beacon);
+                    nearbyBeaconsRegionMaps.get(region.getUniqueId()).put(key, beacon);
+                }
+                Log.d(TAG, "Detect beacons: size = " + nearbyBeaconsRegionMaps.size());
+
+                // Transfer to nearbyBeaconMap
+                nearbyBeaconMap.clear();
+                for (Map<String, Beacon> map : nearbyBeaconsRegionMaps.values()) {
+                    nearbyBeaconMap.putAll(map);
                 }
 
                 // Get nearby missing beacons
@@ -240,6 +254,7 @@ public class NearbyFragment extends Fragment
                     NearbyItem ni = allMissingBeaconMap.get(key1);
                     if (ni != null) {
                         Log.d(TAG, "Matched beacons: " + key1);
+                        ni.setDistance(nearbyBeaconMap.get(key1).getDistance());
                         nearbyMissingBeaconMap.put(key1, ni);
                     }
                 }

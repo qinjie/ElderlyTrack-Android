@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         BottomNavigationView navigation = this.findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-        navigation.setSelectedItemId(R.id.navigation_relative);
+        navigation.setSelectedItemId(R.id.navigation_missing);
 
 //        //Manually displaying the first fragment - one time only
 //        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();

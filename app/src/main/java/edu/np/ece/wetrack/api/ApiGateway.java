@@ -10,10 +10,13 @@ import java.util.List;
 
 import edu.np.ece.wetrack.BeaconApplication;
 import edu.np.ece.wetrack.MainActivity;
+import edu.np.ece.wetrack.model.ApiMessage;
 import edu.np.ece.wetrack.model.AuthToken;
 import edu.np.ece.wetrack.model.LocationWithBeacon;
 import edu.np.ece.wetrack.model.Missing;
+import edu.np.ece.wetrack.model.MissingWithResident;
 import edu.np.ece.wetrack.model.NearbyItem;
+import edu.np.ece.wetrack.model.ResidentWithMissing;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -48,6 +51,7 @@ public class ApiGateway {
 //                    application.session.saveAuthToken(response.body());
                 } else {
                     Log.d(TAG, response.message());
+                    event.setMessage(response.message());
 //                    application.session.saveAuthToken(null);
 //                    if (response.message() != null)
 //                        Toast.makeText(context, "Failed to connect to server. " + response.message(), Toast.LENGTH_SHORT).show();
@@ -59,8 +63,127 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<AuthToken> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                EventBus.getDefault().post(new ApiEventLogin());
-//                EventBus.getDefault().post(new EventInProgress(false));
+                ApiEventLogin event = new ApiEventLogin();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+    }
+
+    public static void apiLoginWithEmail(String email, String pwd) {
+        if (!application.isInternetConnected()) return;
+
+        JsonObject obj = new JsonObject();
+        obj.addProperty("email", email);
+        obj.addProperty("password", pwd);
+
+        String contentType = "application/json";
+//        EventBus.getDefault().post(new EventInProgress(true));
+        apiInterface.loginWithEmail(contentType, obj).enqueue(new Callback<AuthToken>() {
+            @Override
+            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
+                Log.d(TAG, call.request().toString());
+                Log.d(TAG, response.toString());
+
+                ApiEventLogin event = new ApiEventLogin();
+                event.setResponded(true);
+                event.setStatusCode(response.code());
+                if (response.isSuccessful()) {
+                    Log.d(TAG, response.body().toString());
+                    event.setSuccessful(true);
+                    event.setAuthToken(response.body());
+                } else {
+                    Log.d(TAG, response.message());
+                    event.setMessage(response.message());
+                }
+                EventBus.getDefault().post(event);
+            }
+
+            @Override
+            public void onFailure(Call<AuthToken> call, Throwable t) {
+                Log.d(TAG, "API Error:" + t.getMessage());
+                ApiEventLogin event = new ApiEventLogin();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+    }
+
+
+    public static void apiForgotPassword(String email) {
+        Log.d(TAG, "apiForgotPassword() " + email);
+        if (!application.isInternetConnected()) return;
+
+        JsonObject obj = new JsonObject();
+        obj.addProperty("email", email);
+
+        String contentType = "application/json";
+        apiInterface.forgotPassword(contentType, obj).enqueue(new Callback<ApiMessage>() {
+            @Override
+            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                Log.d(TAG, "apiForgotPassword() " + call.request().toString());
+                Log.d(TAG, "apiForgotPassword() " + response.toString());
+
+                ApiEventForgotPassword event = new ApiEventForgotPassword();
+                event.setResponded(true);
+                event.setStatusCode(response.code());
+                if (response.isSuccessful()) {
+                    Log.d(TAG, response.body().toString());
+                    event.setSuccessful(true);
+                    event.setMessage(response.body().getMessage());
+                } else {
+                    Log.d(TAG, response.message());
+                    event.setMessage(response.message());
+                }
+                EventBus.getDefault().post(event);
+            }
+
+            @Override
+            public void onFailure(Call<ApiMessage> call, Throwable t) {
+                Log.d(TAG, "API apiForgotPassword() Error:" + t.getMessage());
+                ApiEventForgotPassword event = new ApiEventForgotPassword();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+        Log.d(TAG, "apiForgotPassword() done");
+    }
+
+    public static void apiResetPassword(String email, String token, String newPassword) {
+        if (!application.isInternetConnected()) return;
+
+        JsonObject obj = new JsonObject();
+        obj.addProperty("email", email);
+        obj.addProperty("token", token);
+        obj.addProperty("password", newPassword);
+
+        String contentType = "application/json";
+        apiInterface.resetPassword(contentType, obj).enqueue(new Callback<AuthToken>() {
+            @Override
+            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
+                Log.d(TAG, call.request().toString());
+                Log.d(TAG, response.toString());
+
+                ApiEventResetPassword event = new ApiEventResetPassword();
+                event.setResponded(true);
+                event.setStatusCode(response.code());
+                if (response.isSuccessful()) {
+                    Log.d(TAG, response.body().toString());
+                    event.setSuccessful(true);
+                    event.setAuthToken(response.body());
+                } else {
+                    Log.d(TAG, response.message());
+                    event.setMessage(response.message());
+                }
+                EventBus.getDefault().post(event);
+            }
+
+            @Override
+            public void onFailure(Call<AuthToken> call, Throwable t) {
+                Log.d(TAG, "API Error:" + t.getMessage());
+                ApiEventResetPassword event = new ApiEventResetPassword();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
             }
         });
     }
@@ -96,6 +219,7 @@ public class ApiGateway {
                         EventBus.getDefault().post(new EventTokenExpired(true));
                         return;
                     }
+                    event.setMessage(response.message());
                 }
                 EventBus.getDefault().post(event);
 //                EventBus.getDefault().post(new EventInProgress(false));
@@ -104,57 +228,71 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<List<NearbyItem>> call, Throwable t) {
                 Log.d(TAG, "apiListBeaconsOfMissing(): Error loading from API " + t.getMessage());
-                EventBus.getDefault().post(new ApiEventListBeaconsOfMissing());
-//                EventBus.getDefault().post(new EventInProgress(false));
+
+                ApiEventListBeaconsOfMissing event = new ApiEventListBeaconsOfMissing();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
             }
         });
     }
 
-
-    public static void apiLoginWithEmail(String email, String pwd) {
+    public static void apiReportMissing(int residentId, String remark) {
         if (!application.isInternetConnected()) return;
+        AuthToken authoToken = application.getAuthToken(true);
+        if (authoToken == null || authoToken.getToken() == null) {
+            EventBus.getDefault().post(new EventTokenExpired(true));
+            Log.e(TAG, "Token not found");
+            return;
+        }
+        if (authoToken.getUser() == null) {
+            Log.e(TAG, "User not authorized");
+            return;
+        }
+
+        String token = authoToken.getToken();
+        String contentType = "application/json";
 
         JsonObject obj = new JsonObject();
-        obj.addProperty("email", email);
-        obj.addProperty("password", pwd);
+        obj.addProperty("resident_id", residentId);
+        obj.addProperty("remark", remark);
+        obj.addProperty("reported_by", authoToken.getUser().getId());
 
-        String contentType = "application/json";
-//        EventBus.getDefault().post(new EventInProgress(true));
-        apiInterface.loginWithEmail(contentType, obj).enqueue(new Callback<AuthToken>() {
+        Log.d(TAG, obj.toString());
+        apiInterface.reportMissingCase(token, contentType, obj).enqueue(new Callback<MissingWithResident>() {
             @Override
-            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
+            public void onResponse(Call<MissingWithResident> call, Response<MissingWithResident> response) {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventLogin event = new ApiEventLogin();
+                ApiEventReportMissing event = new ApiEventReportMissing();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
                     Log.d(TAG, response.body().toString());
                     event.setSuccessful(true);
-                    event.setAuthToken(response.body());
+                    event.setMissingWithResident(response.body());
                 } else {
+                    event.setMessage(response.message());
                     Log.d(TAG, response.message());
                 }
                 EventBus.getDefault().post(event);
-//                EventBus.getDefault().post(new EventInProgress(false));
             }
 
             @Override
-            public void onFailure(Call<AuthToken> call, Throwable t) {
+            public void onFailure(Call<MissingWithResident> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                EventBus.getDefault().post(new ApiEventLogin());
-//                EventBus.getDefault().post(new EventInProgress(false));
-//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ApiEventReportMissing event = new ApiEventReportMissing();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
             }
         });
     }
 
     public static void apiCloseMissing(int residentId, String remark) {
         if (!application.isInternetConnected()) return;
-
         AuthToken authoToken = application.getAuthToken(true);
         if (authoToken == null || authoToken.getToken() == null) {
+            EventBus.getDefault().post(new EventTokenExpired(true));
             Log.e(TAG, "Token not found");
             return;
         }
@@ -200,8 +338,9 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<List<Missing>> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                EventBus.getDefault().post(new ApiEventCloseMissing());
-//                EventBus.getDefault().post(new EventInProgress(false));
+                ApiEventCloseMissing event = new ApiEventCloseMissing();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
             }
         });
     }
@@ -210,6 +349,7 @@ public class ApiGateway {
     public static void apiListLocationByMissingId(int missingId) {
         if (!application.isInternetConnected()) return;
         if (application.getAuthToken(false) == null) {
+            EventBus.getDefault().post(new EventTokenExpired(true));
             return;
         }
 
@@ -249,8 +389,9 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<List<LocationWithBeacon>> call, Throwable t) {
                 Log.d(TAG, "apiListLocationByMissingId(): Error loading from API " + t.getMessage());
-                EventBus.getDefault().post(new ApiEventListLocationByMissingId());
-//                EventBus.getDefault().post(new EventInProgress(false));
+                ApiEventListLocationByMissingId event = new ApiEventListLocationByMissingId();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
             }
         });
     }
@@ -279,4 +420,102 @@ public class ApiGateway {
 //            }
 //        });
 //    }
+
+    public static void apiMissingResidents() {
+        if (!application.isInternetConnected()) return;
+        if (application.getAuthToken(true) == null) {
+            EventBus.getDefault().post(new EventTokenExpired(true));
+            return;
+        }
+
+        String token = application.getAuthToken(true).getToken();
+
+        apiInterface.listMissingResidents(token).enqueue(new Callback<List<ResidentWithMissing>>() {
+            @Override
+            public void onResponse(Call<List<ResidentWithMissing>> call, Response<List<ResidentWithMissing>> response) {
+                Log.d(TAG, call.request().toString());
+                Log.d(TAG, response.toString());
+
+                ApiEventListMissingResidents event = new ApiEventListMissingResidents();
+                event.setResponded(true);
+                event.setStatusCode(response.code());
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Downloaded missing residents: " + response.body().toString());
+                    event.setSuccessful(true);
+                    event.setMissingResidents(response.body());
+                } else {
+                    if (response.code() == 401) {
+                        Log.d(TAG, "Token expired.");
+                        EventBus.getDefault().post(new EventTokenExpired(true));
+                        return;
+                    }
+                    if (response.code() == 404) {
+                        Log.d(TAG, "No trail for this missing case.");
+                    }
+                }
+                EventBus.getDefault().post(event);
+            }
+
+            @Override
+            public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
+                Log.d(TAG, "apiMissingResidents(): Error loading from API " + t.getMessage());
+                ApiEventListMissingResidents event = new ApiEventListMissingResidents();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+    }
+
+
+    public static boolean apiListRelativeResidents() {
+        if (!application.isInternetConnected()) return false;
+        AuthToken authToken = application.getAuthToken(true);
+        if (authToken == null || authToken.getToken() == null) {
+            EventBus.getDefault().post(new EventTokenExpired(true));
+            Log.e(TAG, "Token not found");
+            return false;
+        }
+        if (authToken.getUser() == null) {
+            Log.e(TAG, "User not authorized");
+            return false;
+        }
+
+        String token = application.getAuthToken(true).getToken();
+        apiInterface.listRelativeResidents(token).enqueue(new Callback<List<ResidentWithMissing>>() {
+            @Override
+            public void onResponse(Call<List<ResidentWithMissing>> call, Response<List<ResidentWithMissing>> response) {
+                Log.d(TAG, call.request().toString());
+                Log.d(TAG, response.toString());
+
+                ApiEventListRelativeResidents event = new ApiEventListRelativeResidents();
+                event.setResponded(true);
+                event.setStatusCode(response.code());
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Downloaded relative residents: " + response.body().toString());
+                    event.setSuccessful(true);
+                    event.setRelativeResidents(response.body());
+                } else {
+                    if (response.code() == 401) {
+                        Log.d(TAG, "Token expired.");
+                        EventBus.getDefault().post(new EventTokenExpired(true));
+                        return;
+                    }
+                    if (response.code() == 404) {
+                        Log.d(TAG, "No relative resident for current user.");
+                    }
+                }
+                EventBus.getDefault().post(event);
+            }
+
+            @Override
+            public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
+                Log.d(TAG, "apiMissingResidents(): Error loading from API " + t.getMessage());
+                ApiEventListRelativeResidents event = new ApiEventListRelativeResidents();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+        return true;
+    }
+
 }

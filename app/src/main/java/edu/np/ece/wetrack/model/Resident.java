@@ -1,17 +1,19 @@
 package edu.np.ece.wetrack.model;
 
+import android.util.Log;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import org.joda.time.LocalDate;
-import org.joda.time.Years;
-
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import edu.np.ece.wetrack.utils.Utils;
 
 public class Resident implements Serializable {
-
+    private static String TAG = Resident.class.getSimpleName();
     public static final int GENDER_MALE = 1;
     public static final int GENDER_FEMALE = 0;
     public static final int STATUS_MISSING = 1;
@@ -153,10 +155,18 @@ public class Resident implements Serializable {
     }
 
     public int getAge() {
-        LocalDate birthdate = new LocalDate(dob);
-        LocalDate now = new LocalDate();
-        Years age = Years.yearsBetween(birthdate, now);
-        return age.getYears();
+//        LocalDate birthdate = new LocalDate(dob);
+//        LocalDate now = new LocalDate();
+//        Years age = Years.yearsBetween(birthdate, now);
+//        return age.getYears();
+        Log.d(TAG, "getAge() from " + dob);
+        try {
+            Date birthday = new SimpleDateFormat("yyyy-MM-dd").parse(dob);
+            return Utils.getAge(birthday);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public String getGenderString() {

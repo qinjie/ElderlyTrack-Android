@@ -3,8 +3,14 @@ package edu.np.ece.wetrack.utils;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
+
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.MONTH;
+import static java.util.Calendar.YEAR;
 
 public class Utils {
     private static final String TAG = Utils.class.getSimpleName();
@@ -30,5 +36,27 @@ public class Utils {
         }
         Log.d(TAG, "Local: " + localDate);
         return localDate;
+    }
+
+    public static int getAge(Date birthday) {
+        Date current = new Date();
+        return (getDiffYears(birthday, current));
+    }
+
+    public static int getDiffYears(Date first, Date last) {
+        Calendar a = getCalendar(first);
+        Calendar b = getCalendar(last);
+        int diff = b.get(YEAR) - a.get(YEAR);
+        if (a.get(MONTH) > b.get(MONTH) ||
+                (a.get(MONTH) == b.get(MONTH) && a.get(DATE) > b.get(DATE))) {
+            diff--;
+        }
+        return diff;
+    }
+
+    public static Calendar getCalendar(Date date) {
+        Calendar cal = Calendar.getInstance(Locale.US);
+        cal.setTime(date);
+        return cal;
     }
 }

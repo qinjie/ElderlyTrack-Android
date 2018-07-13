@@ -55,7 +55,7 @@
         android:layout_alignParentEnd="true"
         android:layout_below="@id/areaResident"
         android:layout_toEndOf="@id/ivAvatar"
-        android:lines="2"
+        android:minLines="2"
         android:maxLines="4"
         android:padding="2dp"
         android:textAlignment="textStart"
@@ -70,9 +70,9 @@
         android:layout_alignParentEnd="true"
         android:layout_below="@id/tvInfo"
         android:layout_toEndOf="@id/ivAvatar"
-        android:textAlignment="textEnd"
-        android:lines="1"
+        android:minLines="1"
         android:maxLines="2"
+        android:ellipsize="marquee"
         android:textSize="12sp"
         tools:text="tvReportedAt" />
 

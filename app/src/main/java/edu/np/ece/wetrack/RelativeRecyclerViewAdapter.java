@@ -52,7 +52,7 @@ public class RelativeRecyclerViewAdapter extends RecyclerView.Adapter<RelativeRe
         if (missing != null) {
             if (missing.getReportedAt() != null) {
                 holder.tvReportedAt.setText("Last seen: "
-                        + missing.getAddressOrGps() + " "
+                        + missing.getAddressOrGps() + " | "
                         + missing.getUpdatedAtLocal(null));
             }
         }

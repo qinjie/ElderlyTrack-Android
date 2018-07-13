@@ -3,7 +3,8 @@ package edu.np.ece.wetrack.api;
 public class ApiEvent {
     protected boolean isResponded = false;
     protected boolean isSuccessful = false;
-    protected int statusCode;
+    protected int statusCode = 500;
+    protected String message = null;
 
     public boolean isSuccessful() {
         return isSuccessful;
@@ -29,4 +30,11 @@ public class ApiEvent {
         this.isResponded = responded;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

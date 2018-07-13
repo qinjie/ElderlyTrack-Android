@@ -3,12 +3,18 @@ package edu.np.ece.wetrack;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -20,8 +26,10 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import edu.np.ece.wetrack.api.ApiEventForgotPassword;
 import edu.np.ece.wetrack.api.ApiEventLogin;
 import edu.np.ece.wetrack.api.ApiGateway;
 import edu.np.ece.wetrack.api.EventInProgress;
@@ -40,9 +48,11 @@ public class LoginFragment extends Fragment {
     @BindView(R.id.atvEmail)
     AutoCompleteTextView atvEmail;
     @BindView(R.id.etPassword)
-    EditText password;
+    EditText etPassword;
     @BindView(R.id.tvForgotPassword)
     TextView tvForgotPassword;
+    @BindView(R.id.cbShow)
+    CheckBox cbShow;
     @BindView(R.id.btSignIn)
     Button btSignIn;
 
@@ -120,21 +130,65 @@ public class LoginFragment extends Fragment {
             Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
             mListener.getBaseApplication().saveAuthToken(event.getAuthToken());
             getActivity().onBackPressed();
+        } else {
+            Toast.makeText(getContext(), "Login failed", Toast.LENGTH_SHORT).show();
+        }
+        EventBus.getDefault().post(new EventInProgress(false));
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onApiEventForgotPassword(ApiEventForgotPassword event) {
+        Log.d(TAG, "onApiEventForgotPassword()");
+        Toast.makeText(getContext(), event.getMessage(), Toast.LENGTH_SHORT).show();
+        if (event.isSuccessful()) {
+            // Go to reset password screen
+            Fragment fragment = ResetPasswordFragment.newInstance(atvEmail.getText().toString());
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.replace(R.id.frame_layout, fragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        } else {
+
+        }
+    }
+
+    @OnCheckedChanged(R.id.cbShow)
+    public void OnCheckedShowPassword(CompoundButton view) {
+        if (cbShow.isChecked()) {
+            etPassword.setInputType(InputType.TYPE_CLASS_TEXT);
+        } else {
+            etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         }
     }
 
     @OnClick(R.id.btSignIn)
     public void onClickLogin(View view) {
-//        apiLoginWithEmail();
         String email = atvEmail.getText().toString();
-        String pwd = password.getText().toString();
+        String pwd = etPassword.getText().toString();
+
+        if (TextUtils.isEmpty(email)) {
+            Toast.makeText(getActivity(), "Please enter email", Toast.LENGTH_SHORT).show();
+            atvEmail.requestFocus();
+            return;
+        }
+        if (TextUtils.isEmpty(pwd)) {
+            Toast.makeText(getActivity(), "Please enter password", Toast.LENGTH_SHORT).show();
+            etPassword.requestFocus();
+            return;
+        }
         ApiGateway.apiLoginWithEmail(email, pwd);
+        EventBus.getDefault().post(new EventInProgress(true));
     }
 
     @OnClick(R.id.tvForgotPassword)
     public void onClickForgotPassword(View view) {
-        //TODO
-//        apiForgotPassword();
+        Log.d(TAG, "onClickForgotPassword()");
+        if (TextUtils.isEmpty(atvEmail.getText())) {
+            Toast.makeText(getActivity(), "Please enter email address.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        ApiGateway.apiForgotPassword(atvEmail.getText().toString().trim());
     }
 
 
