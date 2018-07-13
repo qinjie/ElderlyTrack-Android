@@ -113,7 +113,7 @@ public class RelativeFragment extends Fragment
     public void onApiEventListRelativeResidents(ApiEventListRelativeResidents event) {
         Log.d(TAG, "onApiEventListRelativeResidents()");
         if (event.isSuccessful()) {
-            Toast.makeText(getContext(), "List relative resident successful", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getContext(), "List relative resident successful", Toast.LENGTH_SHORT).show();
             residentList = new ArrayList<ResidentWithMissing>(event.getRelativeResidents());
             mAdapter.updateItems(residentList);
         }
