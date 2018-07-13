@@ -23,7 +23,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import edu.np.ece.wetrack.api.ApiInterface;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.BeaconProfile;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -115,7 +115,7 @@ public class ResidentBeaconsFragment extends Fragment
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 
@@ -136,14 +136,14 @@ public class ResidentBeaconsFragment extends Fragment
         BeaconApplication application = mListener.getBaseApplication();
         ApiInterface apiInterface = mListener.getApiInterface();
 
-        if (!application.hasInternetConnection) {
+        if (!application.isInternetConnected) {
             Log.d(TAG, "No internet connection");
             return;
         }
 
         String token = application.getAuthToken(false).getToken();
         Log.d(TAG, "token = " + token);
-        EventBus.getDefault().post(new InProgressEvent(true));
+        EventBus.getDefault().post(new EventInProgress(true));
         apiInterface.listBeaconsByResidentId(token, residentId).enqueue(new Callback<List<BeaconProfile>>() {
             @Override
             public void onResponse(Call<List<BeaconProfile>> call, Response<List<BeaconProfile>> response) {
@@ -163,7 +163,7 @@ public class ResidentBeaconsFragment extends Fragment
                         Toast.makeText(getContext(), "No beacon for this resident.", Toast.LENGTH_SHORT).show();
                     }
                 }
-                EventBus.getDefault().post(new InProgressEvent(false));
+                EventBus.getDefault().post(new EventInProgress(false));
             }
 
             @Override
@@ -171,7 +171,7 @@ public class ResidentBeaconsFragment extends Fragment
                 Log.d(TAG, "API Error:" + t.getMessage());
                 Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
 
-                EventBus.getDefault().post(new InProgressEvent(false));
+                EventBus.getDefault().post(new EventInProgress(false));
             }
         });
     }
@@ -180,14 +180,14 @@ public class ResidentBeaconsFragment extends Fragment
         BeaconApplication application = mListener.getBaseApplication();
         ApiInterface apiInterface = mListener.getApiInterface();
 
-        if (!application.hasInternetConnection) {
+        if (!application.isInternetConnected) {
             Log.d(TAG, "No internet connection");
             return;
         }
 
         String token = application.getAuthToken(false).getToken();
         Log.d(TAG, "token = " + token);
-        EventBus.getDefault().post(new InProgressEvent(true));
+        EventBus.getDefault().post(new EventInProgress(true));
         apiInterface.updateBeaconStatus(token, beaconId, status).enqueue(new Callback<BeaconProfile>() {
             @Override
             public void onResponse(Call<BeaconProfile> call, Response<BeaconProfile> response) {
@@ -207,7 +207,7 @@ public class ResidentBeaconsFragment extends Fragment
                         Toast.makeText(getContext(), "Beacon not found.", Toast.LENGTH_SHORT).show();
                     }
                 }
-                EventBus.getDefault().post(new InProgressEvent(false));
+                EventBus.getDefault().post(new EventInProgress(false));
             }
 
             @Override
@@ -215,7 +215,7 @@ public class ResidentBeaconsFragment extends Fragment
                 Log.d(TAG, "API Error:" + t.getMessage());
                 Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
 
-                EventBus.getDefault().post(new InProgressEvent(false));
+                EventBus.getDefault().post(new EventInProgress(false));
             }
         });
     }

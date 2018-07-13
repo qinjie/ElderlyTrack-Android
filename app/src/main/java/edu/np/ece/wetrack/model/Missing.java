@@ -169,7 +169,7 @@ public class Missing implements Serializable {
     public String getAddressOrGps() {
         if (address == null || address.isEmpty()) {
             if (latitude != null && longitude != null) {
-                return String.valueOf(latitude + ", " + String.valueOf(longitude));
+                return "(" + String.valueOf(latitude) + ", " + String.valueOf(longitude) + ")";
             } else {
                 return null;
             }
@@ -194,18 +194,18 @@ public class Missing implements Serializable {
     }
 
     public String getReportedAtLocal(String newDateFormat) {
-        if (newDateFormat == null) newDateFormat = "dd MMM, hh:mm a";
+        if (newDateFormat == null) newDateFormat = "dd MMM, h:mm a";
         return Utils.getLocalDateFromUtc(this.getCreatedAt(), null, newDateFormat);
     }
 
 
     public String getCreatedAtLocal(String newDateFormat) {
-        if (newDateFormat == null) newDateFormat = "dd MMM, hh:mm a";
+        if (newDateFormat == null) newDateFormat = "dd MMM, h:mm a";
         return Utils.getLocalDateFromUtc(this.getCreatedAt(), null, newDateFormat);
     }
 
     public String getUpdatedAtLocal(String newDateFormat) {
-        if (newDateFormat == null) newDateFormat = "dd MMM, hh:mm a";
+        if (newDateFormat == null) newDateFormat = "dd MMM, h:mm a";
         return Utils.getLocalDateFromUtc(this.getUpdatedAt(), null, newDateFormat);
     }
 

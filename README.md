@@ -3,10 +3,13 @@
 
 ## TODO
 
-ResidentBeaconsFragment
+Unable connect to Geocoder
 
+Detect beacons at BeaconApplication
 
+Forget password
 
-MissingLocationsFragment
+Release it to app store
+
 
 

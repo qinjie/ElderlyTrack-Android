@@ -1,6 +1,6 @@
 package edu.np.ece.wetrack.api;
 
-import static edu.np.ece.wetrack.api.Constant.BASE_URL;
+import static edu.np.ece.wetrack.api.Constants.BASE_URL;
 
 public class ApiClient {
 

@@ -29,7 +29,7 @@ import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import edu.np.ece.wetrack.api.ApiInterface;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.AuthToken;
 import edu.np.ece.wetrack.model.Missing;
 import edu.np.ece.wetrack.model.ResidentWithMissing;
@@ -67,8 +67,10 @@ public class RelativeDetailFragment extends Fragment {
     Switch switch1;
     @BindView(R.id.tvMissingRemark)
     TextView tvMissingRemark;
-    @BindView(R.id.tvAboutApp)
-    TextView tvLastSeen;
+    @BindView(R.id.tvLastSeenLocation)
+    TextView tvLastSeenLocation;
+    @BindView(R.id.tvLastSeenTime)
+    TextView tvLastSeenTime;
     @BindView(R.id.btBeacons)
     Button btBeacons;
     @BindView(R.id.btTrail)
@@ -159,20 +161,22 @@ public class RelativeDetailFragment extends Fragment {
         tvStatus.setText(item.getStatusString());
         switch1.setChecked(missing != null);
         if (missing != null) {
-            tvReportedAt.setText("Reported at " + missing.getReportedAtLocal(null));
+            tvReportedAt.setText(missing.getReportedAtLocal(null));
             tvReportedAt.setVisibility(View.VISIBLE);
             tvMissingRemark.setText(missing.getRemarkOrComment());
+            tvLastSeenTime.setText(missing.getUpdatedAtLocal(null));
             if (missing.getAddressHtml() != null) {
-                tvLastSeen.setText(Html.fromHtml(missing.getAddressHtml()));
-                tvLastSeen.setMovementMethod(LinkMovementMethod.getInstance());
+                tvLastSeenLocation.setText(Html.fromHtml(missing.getAddressHtml()));
+                tvLastSeenLocation.setMovementMethod(LinkMovementMethod.getInstance());
             } else {
-                tvLastSeen.setText("not available");
+                tvLastSeenLocation.setText("not available");
             }
             btTrail.setEnabled(true);
         } else {
-            tvReportedAt.setVisibility(View.GONE);
+            tvReportedAt.setText("");
             tvMissingRemark.setText("");
-            tvLastSeen.setText("");
+            tvLastSeenLocation.setText("");
+            tvLastSeenTime.setText("");
             btTrail.setEnabled(false);
         }
     }
@@ -226,14 +230,14 @@ public class RelativeDetailFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 
     private void apiGetResident() {
         BeaconApplication application = mListener.getBaseApplication();
         ApiInterface apiInterface = mListener.getApiInterface();
-        if (!application.hasInternetConnection) {
+        if (!application.isInternetConnected) {
             Log.d(TAG, "No internet connection");
             return;
         }
@@ -246,7 +250,7 @@ public class RelativeDetailFragment extends Fragment {
 
         String token = authoToken.getToken();
         String contentType = "application/json";
-        EventBus.getDefault().post(new InProgressEvent(true));
+        EventBus.getDefault().post(new EventInProgress(true));
         apiInterface.getResident(token, item.getId()).enqueue(new Callback<ResidentWithMissing>() {
             @Override
             public void onResponse(Call<ResidentWithMissing> call, Response<ResidentWithMissing> response) {
@@ -257,11 +261,11 @@ public class RelativeDetailFragment extends Fragment {
                     Toast.makeText(getContext(), "Get resident successful", Toast.LENGTH_SHORT).show();
                     item = response.body();
                     updateUI();
-                    EventBus.getDefault().post(new InProgressEvent(false));
+                    EventBus.getDefault().post(new EventInProgress(false));
                 } else {
                     Log.d(TAG, "Token expired.");
                     Toast.makeText(getContext(), "Get resident unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new InProgressEvent(false));
+                    EventBus.getDefault().post(new EventInProgress(false));
                 }
             }
 

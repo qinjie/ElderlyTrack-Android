@@ -50,11 +50,10 @@ public class RelativeRecyclerViewAdapter extends RecyclerView.Adapter<RelativeRe
         }
         Missing missing = item.getActiveMissing();
         if (missing != null) {
-            if (missing.getAddress() != null) {
-                holder.tvLastSeen.setText("Last seen: " + missing.getAddress());
-            }
             if (missing.getReportedAt() != null) {
-                holder.tvReportedAt.setText(missing.getReportedAtLocal(null));
+                holder.tvReportedAt.setText("Last seen: "
+                        + missing.getAddressOrGps() + " "
+                        + missing.getUpdatedAtLocal(null));
             }
         }
     }
@@ -84,7 +83,6 @@ public class RelativeRecyclerViewAdapter extends RecyclerView.Adapter<RelativeRe
             ivStatus = (ImageView) itemView.findViewById(R.id.ivStatus);
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
             tvInfo = (TextView) itemView.findViewById(R.id.tvInfo);
-            tvLastSeen = (TextView) itemView.findViewById(R.id.tvAboutApp);
             tvReportedAt = (TextView) itemView.findViewById(R.id.tvReportedAt);
 
             // Assign item listener

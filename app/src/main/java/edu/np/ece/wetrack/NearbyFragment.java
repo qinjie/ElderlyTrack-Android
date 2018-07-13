@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -35,9 +37,10 @@ import java.util.TreeSet;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.wetrack.api.ApiBeaconsOfMissingEvent;
+import edu.np.ece.wetrack.api.ApiEventListBeaconsOfMissing;
 import edu.np.ece.wetrack.api.ApiGateway;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.EventInProgress;
+import edu.np.ece.wetrack.api.EventNearbyMissingBeaconsFound;
 import edu.np.ece.wetrack.model.NearbyItem;
 
 /**
@@ -92,7 +95,7 @@ public class NearbyFragment extends Fragment
         mBeaconManager.bind(this);
         Log.d(TAG, "onCreate() bind Beacon Manager");
 
-        ApiGateway.apiBeaconsOfMissing(getActivity());
+        ApiGateway.apiListBeaconsOfMissing();
     }
 
     @Override
@@ -116,12 +119,25 @@ public class NearbyFragment extends Fragment
         mAdapter = new NearbyRecyclerViewAdapter(context, new ArrayList<NearbyItem>(), this);
         mRecyclerView.setAdapter(mAdapter);
 
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Toast.makeText(getApplicationContext(), "Refreshing", Toast.LENGTH_LONG).show();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ApiGateway.apiListBeaconsOfMissing();
+                    }
+                }, 1000);
+            }
+        });
         return view;
     }
 
-
     @Override
     public void onAttach(Context context) {
+        Log.d(TAG, "onAttach()");
         super.onAttach(context);
         if (context instanceof FragmentListener) {
             mListener = (FragmentListener) context;
@@ -133,33 +149,43 @@ public class NearbyFragment extends Fragment
 
     @Override
     public void onDetach() {
+        Log.d(TAG, "onDetach()");
         super.onDetach();
         mListener = null;
     }
 
     @Override
     public void onStart() {
+        Log.d(TAG, "onStart()");
         super.onStart();
         EventBus.getDefault().register(this);
+
+        allMissingBeaconMap = mListener.getBaseApplication().session.loadAllMissingBeaconMap();
+        // Fetch latest copy at background
+        ApiGateway.apiListBeaconsOfMissing();
+        progressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onStop() {
+        Log.d(TAG, "onStop()");
         super.onStop();
         EventBus.getDefault().unregister(this);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiBeaconsOfMissingEvent(ApiBeaconsOfMissingEvent event) {
+    public void onApiBeaconsOfMissingEvent(ApiEventListBeaconsOfMissing event) {
+        allMissingBeaconMap.clear();
         List<NearbyItem> list = event.getMissingBeacons();
         for (NearbyItem b : list) {
             allMissingBeaconMap.put((b.getUuid() + "," + b.getMajor() + "," + b.getMinor()).toUpperCase(), b);
         }
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -198,7 +224,7 @@ public class NearbyFragment extends Fragment
         mBeaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-                EventBus.getDefault().post(new InProgressEvent(true));
+                EventBus.getDefault().post(new EventInProgress(true));
                 // Get all nearby beacons
                 nearbyBeaconMap.clear();
                 for (Beacon beacon : beacons) {
@@ -218,30 +244,28 @@ public class NearbyFragment extends Fragment
                     }
                 }
 
-                if (nearbyMissingBeaconMap.size() > 0) {
-                    // Add all beacons to be reported
-                    Log.d(TAG, "Pass beacons to Application");
-                    // TODO Send to server
-//                    mListener.getBaseApplication().appendNearbyMissingBeacons(nearbyMissingBeaconMap);
-                }
-
+                Log.d(TAG, "nearbyMissingBeaconMap size = " + nearbyMissingBeaconMap.size());
                 // Update listView
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Log.d(TAG, "Range nearby beacon list = " + nearbyBeaconMap.size());
                             mAdapter.updateItems(new ArrayList(nearbyMissingBeaconMap.values()));
                         }
                     });
                 }
-                EventBus.getDefault().post(new InProgressEvent(false));
+
+                Log.d(TAG, "new EventNearbyMissingBeaconsFound(): size = " + nearbyMissingBeaconMap.size());
+                if (nearbyMissingBeaconMap.size() > 0) {
+                    EventBus.getDefault().post(new EventNearbyMissingBeaconsFound(nearbyMissingBeaconMap));
+                }
+                EventBus.getDefault().post(new EventInProgress(false));
             }
         });
 
         mListener.getBaseApplication().monitorRegions(false);
         mListener.getBaseApplication().rangeRegions(true);
-        EventBus.getDefault().post(new InProgressEvent(true));
+        EventBus.getDefault().post(new EventInProgress(true));
     }
 
     @Override

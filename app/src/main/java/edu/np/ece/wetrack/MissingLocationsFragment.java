@@ -19,17 +19,14 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.wetrack.api.ApiInterface;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.ApiEventListLocationByMissingId;
+import edu.np.ece.wetrack.api.ApiGateway;
+import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.LocationWithBeacon;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * A fragment representing a list of Items.
@@ -46,7 +43,6 @@ public class MissingLocationsFragment extends Fragment
     @BindView(R.id.list)
     RecyclerView mRecyclerView;
 
-    ArrayList<LocationWithBeacon> locationList = new ArrayList<LocationWithBeacon>();
     MissingLocationRecyclerViewAdapter mAdapter;
 
     int missingId;
@@ -77,13 +73,13 @@ public class MissingLocationsFragment extends Fragment
 
         Context context = view.getContext();
         mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
-        mAdapter = new MissingLocationRecyclerViewAdapter(context, locationList, this);
+        mAdapter = new MissingLocationRecyclerViewAdapter(context, new ArrayList<>(), this);
         mRecyclerView.setAdapter(mAdapter);
 
         Bundle bundle = this.getArguments();
         this.missingId = bundle.getInt("ResidentId");
 
-        apiListLocationByMissingId();
+        ApiGateway.apiListLocationByMissingId(missingId);
         return view;
     }
 
@@ -123,8 +119,15 @@ public class MissingLocationsFragment extends Fragment
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onApiEventListLocationByMissingId(ApiEventListLocationByMissingId event) {
+        Log.d(TAG, "onApiEventListLocationByMissingId()");
+        mAdapter.updateItems(event.getLocationsWithBeacon());
+        progressBar.setVisibility(View.GONE);
     }
 
     @Override
@@ -149,47 +152,47 @@ public class MissingLocationsFragment extends Fragment
         }
     }
 
-    public void apiListLocationByMissingId() {
-        BeaconApplication application = mListener.getBaseApplication();
-        ApiInterface apiInterface = mListener.getApiInterface();
-
-        if (!application.hasInternetConnection) {
-            Log.d(TAG, "No internet connection");
-            return;
-        }
-
-        String token = application.getAuthToken(false).getToken();
-        Log.d(TAG, "token = " + token);
-        EventBus.getDefault().post(new InProgressEvent(true));
-        apiInterface.listLocationByMissingId(token, missingId).enqueue(new Callback<List<LocationWithBeacon>>() {
-            @Override
-            public void onResponse(Call<List<LocationWithBeacon>> call, Response<List<LocationWithBeacon>> response) {
-                Log.d(TAG, call.request().toString());
-                Log.d(TAG, "Status code = " + String.valueOf(response.code()));
-
-                if (response.isSuccessful()) {
-                    Log.d(TAG, "Downloaded location for missing case: " + response.body().toString());
-                    locationList = new ArrayList<>(response.body());
-                    mAdapter.updateItems(locationList);
-                } else {
-                    if (response.code() == 401) {
-                        Log.d(TAG, "Token expired.");
-                        Toast.makeText(getContext(), "Token expired.", Toast.LENGTH_SHORT).show();
-                    }
-                    if (response.code() == 404) {
-                        Toast.makeText(getContext(), "No trail for this missing case.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                EventBus.getDefault().post(new InProgressEvent(false));
-            }
-
-            @Override
-            public void onFailure(Call<List<LocationWithBeacon>> call, Throwable t) {
-                Log.d(TAG, "API Error:" + t.getMessage());
-                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-
-                EventBus.getDefault().post(new InProgressEvent(false));
-            }
-        });
-    }
+//    public void apiListLocationByMissingId() {
+//        BeaconApplication application = mListener.getBaseApplication();
+//        ApiInterface apiInterface = mListener.getApiInterface();
+//
+//        if (!application.hasInternetConnection) {
+//            Log.d(TAG, "No internet connection");
+//            return;
+//        }
+//
+//        String token = application.getAuthToken(false).getToken();
+//        Log.d(TAG, "token = " + token);
+//        EventBus.getDefault().post(new EventInProgress(true));
+//        apiInterface.listLocationByMissingId(token, missingId).enqueue(new Callback<List<LocationWithBeacon>>() {
+//            @Override
+//            public void onResponse(Call<List<LocationWithBeacon>> call, Response<List<LocationWithBeacon>> response) {
+//                Log.d(TAG, call.request().toString());
+//                Log.d(TAG, "Status code = " + String.valueOf(response.code()));
+//
+//                if (response.isSuccessful()) {
+//                    Log.d(TAG, "Downloaded location for missing case: " + response.body().toString());
+//                    locationList = new ArrayList<>(response.body());
+//                    mAdapter.updateItems(locationList);
+//                } else {
+//                    if (response.code() == 401) {
+//                        Log.d(TAG, "Token expired.");
+//                        Toast.makeText(getContext(), "Token expired.", Toast.LENGTH_SHORT).show();
+//                    }
+//                    if (response.code() == 404) {
+//                        Toast.makeText(getContext(), "No trail for this missing case.", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//                EventBus.getDefault().post(new EventInProgress(false));
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<LocationWithBeacon>> call, Throwable t) {
+//                Log.d(TAG, "API Error:" + t.getMessage());
+//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//
+//                EventBus.getDefault().post(new EventInProgress(false));
+//            }
+//        });
+//    }
 }

@@ -1,14 +1,21 @@
-package edu.np.ece.wetrack.receiver;
+package edu.np.ece.wetrack.api;
 
-public class GpsLocationEvent {
+import android.util.Log;
+
+public class EventHasGpsLocation {
+    private static String TAG = EventHasGpsLocation.class.getSimpleName();
+
     public double latitude;
     public double longitude;
     public String address;
 
-    public GpsLocationEvent(double latitude, double longitude, String address) {
+    public EventHasGpsLocation(double latitude, double longitude, String address) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.address = address;
+
+        Log.i(TAG, "EventHasGpsLocation(): ");
+
     }
 
     public double getLatitude() {
@@ -25,7 +32,7 @@ public class GpsLocationEvent {
 
     @Override
     public String toString() {
-        return "GpsLocationEvent{" +
+        return "EventHasGpsLocation{" +
                 "latitude=" + latitude +
                 ", longitude=" + longitude +
                 ", address='" + address + '\'' +

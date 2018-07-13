@@ -128,12 +128,12 @@ public class BeaconProfile implements Serializable {
     }
 
     public String getCreatedAtLocal(String newDateFormat) {
-        if (newDateFormat == null) newDateFormat = "dd MMM, hh:mm a";
+        if (newDateFormat == null) newDateFormat = "dd MMM, h:mm a";
         return Utils.getLocalDateFromUtc(this.getCreatedAt(), null, newDateFormat);
     }
 
     public String getUpdatedAtLocal(String newDateFormat) {
-        if (newDateFormat == null) newDateFormat = "dd MMM, hh:mm a";
+        if (newDateFormat == null) newDateFormat = "dd MMM, h:mm a";
         return Utils.getLocalDateFromUtc(this.getUpdatedAt(), null, newDateFormat);
     }
 

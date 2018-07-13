@@ -31,7 +31,7 @@ import java.util.TreeMap;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.EventInProgress;
 
 /**
  * A fragment representing a list of Items.
@@ -138,7 +138,7 @@ public class BeaconFragment extends Fragment
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 
@@ -169,7 +169,7 @@ public class BeaconFragment extends Fragment
         mListener.getBaseApplication().monitorRegions(false);
         mListener.getBaseApplication().rangeRegions(true);
 
-        EventBus.getDefault().post(new InProgressEvent(true));
+        EventBus.getDefault().post(new EventInProgress(true));
     }
 
     @Override
@@ -186,7 +186,7 @@ public class BeaconFragment extends Fragment
         mBeaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-                EventBus.getDefault().post(new InProgressEvent(true));
+                EventBus.getDefault().post(new EventInProgress(true));
                 // Get all nearby beacons
                 nearbyBeaconMap.clear();
                 for (Beacon beacon : beacons) {
@@ -222,7 +222,7 @@ public class BeaconFragment extends Fragment
                         }
                     });
                 }
-                EventBus.getDefault().post(new InProgressEvent(false));
+                EventBus.getDefault().post(new EventInProgress(false));
             }
         });
 

@@ -23,7 +23,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import edu.np.ece.wetrack.api.ApiInterface;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.AuthToken;
 import edu.np.ece.wetrack.model.MissingWithResident;
 import retrofit2.Call;
@@ -124,7 +124,7 @@ public class ReportMissingFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 
@@ -132,7 +132,7 @@ public class ReportMissingFragment extends Fragment {
     private void apiReportMissing() {
         BeaconApplication application = mListener.getBaseApplication();
         ApiInterface apiInterface = mListener.getApiInterface();
-        if (!application.hasInternetConnection) {
+        if (!application.isInternetConnected) {
             Log.d(TAG, "No internet connection");
             return;
         }
@@ -152,7 +152,7 @@ public class ReportMissingFragment extends Fragment {
         obj.addProperty("reported_by", authoToken.getUser().getId());
 
         Log.d(TAG, obj.toString());
-        EventBus.getDefault().post(new InProgressEvent(true));
+        EventBus.getDefault().post(new EventInProgress(true));
         apiInterface.reportMissingCase(token, contentType, obj).enqueue(new Callback<MissingWithResident>() {
             @Override
             public void onResponse(Call<MissingWithResident> call, Response<MissingWithResident> response) {
@@ -161,13 +161,13 @@ public class ReportMissingFragment extends Fragment {
                 Log.d(TAG, response.toString());
                 if (response.isSuccessful()) {
                     Toast.makeText(getContext(), "Report missing successful", Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new InProgressEvent(false));
+                    EventBus.getDefault().post(new EventInProgress(false));
                     // Go back to Resident Detail screen
                     getActivity().onBackPressed();
                 } else {
                     Log.d(TAG, "Token expired.");
                     Toast.makeText(getContext(), "Report missing unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new InProgressEvent(false));
+                    EventBus.getDefault().post(new EventInProgress(false));
                 }
             }
 

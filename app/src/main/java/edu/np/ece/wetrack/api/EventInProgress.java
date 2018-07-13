@@ -1,10 +1,14 @@
 package edu.np.ece.wetrack.api;
 
-public class InProgressEvent {
+import android.util.Log;
+
+public class EventInProgress {
+    private static String TAG = EventInProgress.class.getSimpleName();
 
     boolean inProgress;
 
-    public InProgressEvent(boolean inProgress) {
+    public EventInProgress(boolean inProgress) {
+        Log.d(TAG, "EventInProgress(): " + String.valueOf(inProgress));
         this.inProgress = inProgress;
     }
 

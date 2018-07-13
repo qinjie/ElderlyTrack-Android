@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -23,13 +22,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import edu.np.ece.wetrack.api.ApiEventLogin;
+import edu.np.ece.wetrack.api.ApiGateway;
 import edu.np.ece.wetrack.api.ApiInterface;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.AuthToken;
 import edu.np.ece.wetrack.model.User;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class SettingFragment extends Fragment {
     private static final String TAG = SettingFragment.class.getSimpleName();
@@ -187,37 +185,17 @@ public class SettingFragment extends Fragment {
         BeaconApplication application = mListener.getBaseApplication();
         ApiInterface apiInterface = mListener.getApiInterface();
 
-        if (!application.hasInternetConnection) {
+        if (!application.isInternetConnected) {
             Log.d(TAG, "No internet connection");
             return;
         }
-        EventBus.getDefault().post(new InProgressEvent(true));
-        apiInterface.loginAnonymous().enqueue(new Callback<AuthToken>() {
-            @Override
-            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-                Log.d(TAG, call.request().toString());
-                int statusCode = response.code();
-                Log.d(TAG, response.toString());
-                if (response.isSuccessful()) {
-                    Toast.makeText(getActivity(), "Connected to server", Toast.LENGTH_LONG).show();
-                    application.session.saveAuthToken(response.body());
-                    application.getAuthToken(true);
-                    EventBus.getDefault().post(new InProgressEvent(false));
-                } else {
-                    application.session.saveAuthToken(null);
-                    if (response.message() != null) {
-                        Toast.makeText(getActivity(), "Failed to connect to server. " + response.message(), Toast.LENGTH_SHORT).show();
-                    }
-                    EventBus.getDefault().post(new InProgressEvent(false));
-                }
-            }
+        EventBus.getDefault().post(new EventInProgress(true));
+        ApiGateway.apiLoginAnonymous();
+    }
 
-            @Override
-            public void onFailure(Call<AuthToken> call, Throwable t) {
-                Log.d(TAG, "apiLoginAnonymous(): Error loading from API " + t.getMessage());
-                application.session.saveAuthToken(null);
-            }
-        });
+    @Subscribe()
+    public void onApiEventLogin(ApiEventLogin event) {
+        EventBus.getDefault().post(new EventInProgress(false));
     }
 
     @Override
@@ -233,7 +211,7 @@ public class SettingFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 

@@ -71,6 +71,7 @@ public class MissingLocationRecyclerViewAdapter extends RecyclerView.Adapter<Mis
             holder.tvBeaconLabel.setText(beacon.getLabel());
         }
         holder.tvAddress.setText(item.getAddress());
+        holder.tvAddress.setVisibility(item.getAddress() == null ? View.GONE : View.VISIBLE);
         holder.tvLatitude.setText(String.valueOf(item.getLatitude()));
         holder.tvLongitude.setText(String.valueOf(item.getLongitude()));
         holder.tvReportedAt.setText(item.getCreatedAtLocal(null));
@@ -78,7 +79,10 @@ public class MissingLocationRecyclerViewAdapter extends RecyclerView.Adapter<Mis
 
     @Override
     public int getItemCount() {
-        return mItems.size();
+        if (mItems != null)
+            return mItems.size();
+        else
+            return 0;
     }
 
     private LocationWithBeacon getItem(int adapterPosition) {

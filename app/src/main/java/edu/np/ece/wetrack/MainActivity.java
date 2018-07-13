@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity
 
         if (application.getAuthToken(true) == null) {
             // Login to server as anonymous user
-            ApiGateway.apiLoginAnonymous(this);
+            ApiGateway.apiLoginAnonymous();
         }
 
     }

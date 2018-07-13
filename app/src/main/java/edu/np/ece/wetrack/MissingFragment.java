@@ -25,7 +25,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import edu.np.ece.wetrack.api.ApiInterface;
-import edu.np.ece.wetrack.api.InProgressEvent;
+import edu.np.ece.wetrack.api.EventInProgress;
 import edu.np.ece.wetrack.model.ResidentWithMissing;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -68,14 +68,14 @@ public class MissingFragment extends Fragment
         BeaconApplication application = mListener.getBaseApplication();
         ApiInterface apiInterface = mListener.getApiInterface();
 
-        if (!application.hasInternetConnection) {
+        if (!application.isInternetConnected) {
             Log.d(TAG, "No internet connection");
             return;
         }
 
         String token = application.getAuthToken(false).getToken();
         Log.d(TAG, "token = " + token);
-        EventBus.getDefault().post(new InProgressEvent(true));
+        EventBus.getDefault().post(new EventInProgress(true));
         apiInterface.listMissingResidents(token).enqueue(new Callback<List<ResidentWithMissing>>() {
             @Override
             public void onResponse(Call<List<ResidentWithMissing>> call, Response<List<ResidentWithMissing>> response) {
@@ -92,7 +92,7 @@ public class MissingFragment extends Fragment
                         Toast.makeText(getActivity(), "Token expired.", Toast.LENGTH_SHORT).show();
                     }
                 }
-                EventBus.getDefault().post(new InProgressEvent(false));
+                EventBus.getDefault().post(new EventInProgress(false));
             }
 
             @Override
@@ -100,7 +100,7 @@ public class MissingFragment extends Fragment
                 Log.d(TAG, "API Error apiMissingResidents():" + t.getMessage());
                 Toast.makeText(getActivity(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
 
-                EventBus.getDefault().post(new InProgressEvent(false));
+                EventBus.getDefault().post(new EventInProgress(false));
             }
         });
     }
@@ -163,7 +163,7 @@ public class MissingFragment extends Fragment
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 

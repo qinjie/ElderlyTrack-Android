@@ -43,7 +43,7 @@ public class MissingRecyclerViewAdapter extends RecyclerView.Adapter<MissingRecy
         holder.tvTitle.setText(item.getGenderAge());
         if (missing != null) {
             holder.tvInfo.setText(missing.getRemark());
-            holder.tvReportedAt.setText(missing.getReportedAtLocal(null));
+            holder.tvReportedAt.setText("reported: " + missing.getReportedAtLocal(null));
         }
     }
 

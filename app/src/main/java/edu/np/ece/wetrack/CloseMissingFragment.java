@@ -12,25 +12,17 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.gson.JsonObject;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.wetrack.api.ApiInterface;
-import edu.np.ece.wetrack.api.InProgressEvent;
-import edu.np.ece.wetrack.model.AuthToken;
-import edu.np.ece.wetrack.model.Missing;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import edu.np.ece.wetrack.api.ApiEventCloseMissing;
+import edu.np.ece.wetrack.api.ApiGateway;
+import edu.np.ece.wetrack.api.EventInProgress;
 
 public class CloseMissingFragment extends Fragment {
     private static final String TAG = CloseMissingFragment.class.getSimpleName();
@@ -84,7 +76,11 @@ public class CloseMissingFragment extends Fragment {
 
     @OnClick(R.id.btReport)
     public void onClickLogin(View view) {
-        apiCloseMissing();
+
+//        apiCloseMissing();
+        //        obj.addProperty("resident_id", this.residentId);
+//        obj.addProperty("closure", etRemark.getText().toString());
+        ApiGateway.apiCloseMissing(this.residentId, etRemark.getText().toString());
     }
 
 
@@ -126,61 +122,69 @@ public class CloseMissingFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onInProgressEvent(InProgressEvent event) {
+    public void onInProgressEvent(EventInProgress event) {
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 
-
-    private void apiCloseMissing() {
-        BeaconApplication application = mListener.getBaseApplication();
-        ApiInterface apiInterface = mListener.getApiInterface();
-        if (!application.hasInternetConnection) {
-            Log.d(TAG, "No internet connection");
-            return;
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onApiEventCloseMissing(ApiEventCloseMissing event) {
+        Log.d(TAG, "onApiEventCloseMissing()");
+        if (event.isSuccessful()) {
+            Toast.makeText(getContext(), "Close missing successful", Toast.LENGTH_SHORT).show();
+            getActivity().onBackPressed();
         }
-
-        AuthToken authoToken = application.getAuthToken(true);
-        if (authoToken == null || authoToken.getToken() == null) {
-            Log.e(TAG, "Token not found");
-            return;
-        }
-
-//        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxaW5qaWVAbnAuZWR1LnNnLDEwLDQxMyIsImlhdCI6MTUzMDA2NDExNiwibmJmIjoxNTMwMDY0MTE2LCJqdGkiOiJlMTk4ODg2Zi1mNTEzLTQwODMtOTlhNy01ZjA4NDM1NzZjMjcifQ.UspO1dABIo9c5ZsgtcEBheDuvQDgTqVbUvyfeatg-1w";
-        String token = authoToken.getToken();
-        String contentType = "application/json";
-
-        JsonObject obj = new JsonObject();
-        obj.addProperty("resident_id", this.residentId);
-        obj.addProperty("closure", etRemark.getText().toString());
-        obj.addProperty("closed_by", authoToken.getUser().getId());
-
-        Log.d(TAG, obj.toString());
-        EventBus.getDefault().post(new InProgressEvent(true));
-        apiInterface.closeMissingCase(token, contentType, obj).enqueue(new Callback<List<Missing>>() {
-            @Override
-            public void onResponse(Call<List<Missing>> call, Response<List<Missing>> response) {
-                Log.d(TAG, call.request().toString());
-                int statusCode = response.code();
-                if (response.isSuccessful()) {
-                    Log.d(TAG, response.body().toString());
-                    Toast.makeText(getContext(), "Close missing successful", Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new InProgressEvent(false));
-                    // Go back to Resident Detail screen
-                    getActivity().onBackPressed();
-                } else {
-                    Log.d(TAG, response.message());
-                    Toast.makeText(getContext(), "Close missing unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new InProgressEvent(false));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Missing>> call, Throwable t) {
-                Log.d(TAG, "API Error:" + t.getMessage());
-                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
+
+//    private void apiCloseMissing() {
+//        BeaconApplication application = mListener.getBaseApplication();
+//        ApiInterface apiInterface = mListener.getApiInterface();
+//        if (!application.hasInternetConnection) {
+//            Log.d(TAG, "No internet connection");
+//            return;
+//        }
+//
+//        AuthToken authoToken = application.getAuthToken(true);
+//        if (authoToken == null || authoToken.getToken() == null) {
+//            Log.e(TAG, "Token not found");
+//            return;
+//        }
+//
+////        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxaW5qaWVAbnAuZWR1LnNnLDEwLDQxMyIsImlhdCI6MTUzMDA2NDExNiwibmJmIjoxNTMwMDY0MTE2LCJqdGkiOiJlMTk4ODg2Zi1mNTEzLTQwODMtOTlhNy01ZjA4NDM1NzZjMjcifQ.UspO1dABIo9c5ZsgtcEBheDuvQDgTqVbUvyfeatg-1w";
+//        String token = authoToken.getToken();
+//        String contentType = "application/json";
+//
+//        JsonObject obj = new JsonObject();
+//        obj.addProperty("resident_id", this.residentId);
+//        obj.addProperty("closure", etRemark.getText().toString());
+//        obj.addProperty("closed_by", authoToken.getUser().getId());
+//
+//        Log.d(TAG, obj.toString());
+//        EventBus.getDefault().post(new EventInProgress(true));
+//        apiInterface.closeMissingCase(token, contentType, obj).enqueue(new Callback<List<Missing>>() {
+//            @Override
+//            public void onResponse(Call<List<Missing>> call, Response<List<Missing>> response) {
+//                Log.d(TAG, call.request().toString());
+//                int statusCode = response.code();
+//                if (response.isSuccessful()) {
+//                    Log.d(TAG, response.body().toString());
+//                    Toast.makeText(getContext(), "Close missing successful", Toast.LENGTH_SHORT).show();
+//                    EventBus.getDefault().post(new EventInProgress(false));
+//                    // Go back to Resident Detail screen
+//                    getActivity().onBackPressed();
+//                } else {
+//                    Log.d(TAG, response.message());
+//                    Toast.makeText(getContext(), "Close missing unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
+//                    EventBus.getDefault().post(new EventInProgress(false));
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<Missing>> call, Throwable t) {
+//                Log.d(TAG, "API Error:" + t.getMessage());
+//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
 
     @Override
     public void onResume() {
