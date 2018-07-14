@@ -203,9 +203,8 @@ public class BeaconApplication extends Application
         mBeaconManager.setForegroundScanPeriod(5000l);
         mBeaconManager.setForegroundBetweenScanPeriod(5000l);
 
-//        backgroundPowerSaver = new BackgroundPowerSaver(this);
+        backgroundPowerSaver = new BackgroundPowerSaver(this);
         regionBootstrap = new RegionBootstrap(this, this.getRegions());
-//        regionBootstrap = new RegionBootstrap(this, region1);
         Log.i(TAG, "initBeaconManager(): successful");
     }
 
