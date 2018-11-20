@@ -14,6 +14,7 @@ import edu.np.ece.elderlytrack.model.Missing;
 import edu.np.ece.elderlytrack.model.MissingWithResident;
 import edu.np.ece.elderlytrack.model.NearbyItem;
 import edu.np.ece.elderlytrack.model.ResidentWithMissing;
+import edu.np.ece.elderlytrack.model.Setting;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -66,5 +67,7 @@ public interface ApiInterface {
     @POST("api/v1/missing2")
     Call<MissingWithResident> reportMissingCase(@Header("Authorization") String token, @Header("Content-Type") String type, @Body JsonObject obj);
 
+    @GET("api/v1/setting")
+    Call<List<Setting>> listSetting(@Header("Authorization") String token);
 }
 

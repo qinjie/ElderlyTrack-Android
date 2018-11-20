@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventListMissingResidents;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
 import edu.np.ece.elderlytrack.model.ResidentWithMissing;
@@ -35,6 +35,7 @@ import edu.np.ece.elderlytrack.model.ResidentWithMissing;
  */
 public class MissingFragment extends Fragment
         implements MissingRecyclerViewAdapter.OnItemClickedListener {
+
     private static final String TAG = MissingFragment.class.getSimpleName();
     private FragmentListener mListener;
 
@@ -42,14 +43,15 @@ public class MissingFragment extends Fragment
     Unbinder unbinder;
     @BindView(R.id.swiperefreshlayout)
     SwipeRefreshLayout swipeRefreshLayout;
+
     @BindView(R.id.progress_bar)
     ProgressBar progressBar;
+
     @BindView(R.id.recyclerview)
     RecyclerView mRecyclerView;
 
     ArrayList<ResidentWithMissing> residentList = new ArrayList<ResidentWithMissing>();
     MissingRecyclerViewAdapter mAdapter;
-
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -185,7 +187,7 @@ public class MissingFragment extends Fragment
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventListMissingResidents(ApiEventListMissingResidents event) {
+    public void onApiEventListMissingResidents(ApiClient.ApiEventListMissingResidents event) {
         residentList = new ArrayList<>(event.getMissingResidents());
         mAdapter.updateItems(residentList);
         progressBar.setVisibility(View.GONE);

@@ -89,7 +89,7 @@ public class UserSession {
             }.getType();
             return gson.fromJson(json, type);
         } else {
-            return null;
+            return new HashMap<>();
         }
     }
 

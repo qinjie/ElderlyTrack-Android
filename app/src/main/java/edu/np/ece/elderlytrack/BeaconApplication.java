@@ -44,8 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.np.ece.elderlytrack.api.ApiEventListBeaconsOfMissing;
-import edu.np.ece.elderlytrack.api.ApiEventLogin;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.BeaconLocationJob;
 import edu.np.ece.elderlytrack.api.EventHasGpsLocation;
@@ -58,6 +57,7 @@ import edu.np.ece.elderlytrack.utils.UserSession;
 
 public class BeaconApplication extends Application
         implements BootstrapNotifier, RangeNotifier, LocationListener {
+
     public static final String TAG = BeaconApplication.class.getCanonicalName();
 
     private static BeaconApplication instance;
@@ -252,7 +252,7 @@ public class BeaconApplication extends Application
     }
 
     @Subscribe()
-    public void onApiEventLogin(ApiEventLogin event) {
+    public void onApiEventLogin(ApiClient.ApiEventLogin event) {
         this.authToken = event.getAuthToken();
         session.saveAuthToken(event.getAuthToken());
     }
@@ -340,7 +340,7 @@ public class BeaconApplication extends Application
     }
 
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
-    public void onApiBeaconsOfMissingEvent(ApiEventListBeaconsOfMissing event) {
+    public void onApiBeaconsOfMissingEvent(ApiClient.ApiEventListBeaconsOfMissing event) {
         Log.i(TAG, "onApiBeaconsOfMissingEvent(): " + event.toString());
         List<NearbyItem> list = event.getMissingBeacons();
         for (NearbyItem b : list) {

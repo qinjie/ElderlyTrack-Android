@@ -6,7 +6,7 @@ import java.util.Map;
 
 import edu.np.ece.elderlytrack.model.NearbyItem;
 
-public class EventNearbyMissingBeaconsFound extends ApiEvent {
+public class EventNearbyMissingBeaconsFound extends ApiClient.ApiEvent {
     private static String TAG = EventNearbyMissingBeaconsFound.class.getSimpleName();
 
     Map<String, NearbyItem> nearbyMissingBeacons = null;

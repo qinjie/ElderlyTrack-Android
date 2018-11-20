@@ -20,7 +20,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventReportMissing;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
 
@@ -81,7 +81,7 @@ public class ReportMissingFragment extends Fragment {
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventReportMissing(ApiEventReportMissing event) {
+    public void onApiEventReportMissing(ApiClient.ApiEventReportMissing event) {
         Log.d(TAG, "onApiEventReportMissing()");
         if (event.isSuccessful()) {
             Toast.makeText(getContext(), "Report missing successful", Toast.LENGTH_SHORT).show();

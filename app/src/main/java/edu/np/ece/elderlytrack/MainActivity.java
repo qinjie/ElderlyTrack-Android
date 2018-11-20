@@ -24,6 +24,7 @@ import org.altbeacon.beacon.BeaconManager;
 import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.ApiInterface;
+import edu.np.ece.elderlytrack.model.AuthToken;
 
 public class MainActivity extends AppCompatActivity
         implements FragmentListener {
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity
         BottomNavigationView navigation = this.findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         navigation.setSelectedItemId(R.id.navigation_missing);
+        // Disable menu icons
+        navigation.getMenu().findItem(R.id.navigation_relative).setEnabled(false);
 
 //        //Manually displaying the first fragment - one time only
 //        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -65,12 +68,14 @@ public class MainActivity extends AppCompatActivity
         requestPermissions();
         // Make sure Bluetooth is ON
         verifyBluetooth();
-
-        if (application.getAuthToken(true) == null) {
+        AuthToken token = application.getAuthToken(true);
+        if (token == null) {
             // Login to server as anonymous user
             ApiGateway.apiLoginAnonymous();
+        } else if (token.getUser() != null) {
+            // Enable menu icons
+            navigation.getMenu().findItem(R.id.navigation_relative).setEnabled(true);
         }
-
     }
 
 //    @Override

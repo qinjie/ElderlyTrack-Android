@@ -37,7 +37,7 @@ import java.util.TreeSet;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventListBeaconsOfMissing;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
 import edu.np.ece.elderlytrack.api.EventNearbyMissingBeaconsFound;
@@ -181,7 +181,7 @@ public class NearbyFragment extends Fragment
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiBeaconsOfMissingEvent(ApiEventListBeaconsOfMissing event) {
+    public void onApiBeaconsOfMissingEvent(ApiClient.ApiEventListBeaconsOfMissing event) {
         allMissingBeaconMap.clear();
         List<NearbyItem> list = event.getMissingBeacons();
         for (NearbyItem b : list) {

@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventListRelativeResidents;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
 import edu.np.ece.elderlytrack.model.ResidentWithMissing;
@@ -110,7 +110,7 @@ public class RelativeFragment extends Fragment
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventListRelativeResidents(ApiEventListRelativeResidents event) {
+    public void onApiEventListRelativeResidents(ApiClient.ApiEventListRelativeResidents event) {
         Log.d(TAG, "onApiEventListRelativeResidents()");
         if (event.isSuccessful()) {
 //            Toast.makeText(getContext(), "List relative resident successful", Toast.LENGTH_SHORT).show();

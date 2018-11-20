@@ -20,7 +20,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventCloseMissing;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
 
@@ -127,7 +127,7 @@ public class CloseMissingFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventCloseMissing(ApiEventCloseMissing event) {
+    public void onApiEventCloseMissing(ApiClient.ApiEventCloseMissing event) {
         Log.d(TAG, "onApiEventCloseMissing()");
         if (event.isSuccessful()) {
             Toast.makeText(getContext(), "Close missing successful", Toast.LENGTH_SHORT).show();

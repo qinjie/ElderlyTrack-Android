@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventListLocationByMissingId;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
 import edu.np.ece.elderlytrack.model.LocationWithBeacon;
@@ -124,7 +124,7 @@ public class MissingLocationsFragment extends Fragment
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventListLocationByMissingId(ApiEventListLocationByMissingId event) {
+    public void onApiEventListLocationByMissingId(ApiClient.ApiEventListLocationByMissingId event) {
         Log.d(TAG, "onApiEventListLocationByMissingId()");
         mAdapter.updateItems(event.getLocationsWithBeacon());
         progressBar.setVisibility(View.GONE);

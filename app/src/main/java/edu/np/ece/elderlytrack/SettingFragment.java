@@ -2,6 +2,7 @@ package edu.np.ece.elderlytrack;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -22,7 +23,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventLogin;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.ApiInterface;
 import edu.np.ece.elderlytrack.api.EventInProgress;
@@ -88,6 +89,7 @@ public class SettingFragment extends Fragment {
         tvEmail.setText("");
         tvPhone.setText("");
         btLogin.setText("Login");
+        BottomNavigationView navigation = getActivity().findViewById(R.id.navigation);
 
         BeaconApplication application = mListener.getBaseApplication();
         AuthToken authoToken = application.getAuthToken(true);
@@ -101,6 +103,12 @@ public class SettingFragment extends Fragment {
             tvEmail.setText(user.getEmail());
             tvPhone.setText(user.getUserProfile().getPhone());
             btLogin.setText("Logout");
+
+            // Enable menu icon
+            navigation.getMenu().findItem(R.id.navigation_relative).setEnabled(true);
+        } else {
+            // Enable menu icon
+            navigation.getMenu().findItem(R.id.navigation_relative).setEnabled(false);
         }
     }
 
@@ -194,7 +202,7 @@ public class SettingFragment extends Fragment {
     }
 
     @Subscribe()
-    public void onApiEventLogin(ApiEventLogin event) {
+    public void onApiEventLogin(ApiClient.ApiEventLogin event) {
         EventBus.getDefault().post(new EventInProgress(false));
     }
 

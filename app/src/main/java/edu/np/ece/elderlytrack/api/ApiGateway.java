@@ -17,6 +17,8 @@ import edu.np.ece.elderlytrack.model.Missing;
 import edu.np.ece.elderlytrack.model.MissingWithResident;
 import edu.np.ece.elderlytrack.model.NearbyItem;
 import edu.np.ece.elderlytrack.model.ResidentWithMissing;
+import edu.np.ece.elderlytrack.model.Setting;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -41,7 +43,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventLogin event = new ApiEventLogin();
+                ApiClient.ApiEventLogin event = new ApiClient.ApiEventLogin();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -63,7 +65,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<AuthToken> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                ApiEventLogin event = new ApiEventLogin();
+                ApiClient.ApiEventLogin event = new ApiClient.ApiEventLogin();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -85,7 +87,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventLogin event = new ApiEventLogin();
+                ApiClient.ApiEventLogin event = new ApiClient.ApiEventLogin();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -102,7 +104,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<AuthToken> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                ApiEventLogin event = new ApiEventLogin();
+                ApiClient.ApiEventLogin event = new ApiClient.ApiEventLogin();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -124,7 +126,7 @@ public class ApiGateway {
                 Log.d(TAG, "apiForgotPassword() " + call.request().toString());
                 Log.d(TAG, "apiForgotPassword() " + response.toString());
 
-                ApiEventForgotPassword event = new ApiEventForgotPassword();
+                ApiClient.ApiEventForgotPassword event = new ApiClient.ApiEventForgotPassword();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -141,7 +143,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
                 Log.d(TAG, "API apiForgotPassword() Error:" + t.getMessage());
-                ApiEventForgotPassword event = new ApiEventForgotPassword();
+                ApiClient.ApiEventForgotPassword event = new ApiClient.ApiEventForgotPassword();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -164,7 +166,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventResetPassword event = new ApiEventResetPassword();
+                ApiClient.ApiEventResetPassword event = new ApiClient.ApiEventResetPassword();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -181,7 +183,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<AuthToken> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                ApiEventResetPassword event = new ApiEventResetPassword();
+                ApiClient.ApiEventResetPassword event = new ApiClient.ApiEventResetPassword();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -203,7 +205,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventListBeaconsOfMissing event = new ApiEventListBeaconsOfMissing();
+                ApiClient.ApiEventListBeaconsOfMissing event = new ApiClient.ApiEventListBeaconsOfMissing();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -229,7 +231,7 @@ public class ApiGateway {
             public void onFailure(Call<List<NearbyItem>> call, Throwable t) {
                 Log.d(TAG, "apiListBeaconsOfMissing(): Error loading from API " + t.getMessage());
 
-                ApiEventListBeaconsOfMissing event = new ApiEventListBeaconsOfMissing();
+                ApiClient.ApiEventListBeaconsOfMissing event = new ApiClient.ApiEventListBeaconsOfMissing();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -264,7 +266,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventReportMissing event = new ApiEventReportMissing();
+                ApiClient.ApiEventReportMissing event = new ApiClient.ApiEventReportMissing();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -281,7 +283,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<MissingWithResident> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                ApiEventReportMissing event = new ApiEventReportMissing();
+                ApiClient.ApiEventReportMissing event = new ApiClient.ApiEventReportMissing();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -317,7 +319,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventCloseMissing event = new ApiEventCloseMissing();
+                ApiClient.ApiEventCloseMissing event = new ApiClient.ApiEventCloseMissing();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -338,7 +340,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<List<Missing>> call, Throwable t) {
                 Log.d(TAG, "API Error:" + t.getMessage());
-                ApiEventCloseMissing event = new ApiEventCloseMissing();
+                ApiClient.ApiEventCloseMissing event = new ApiClient.ApiEventCloseMissing();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -361,7 +363,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventListLocationByMissingId event = new ApiEventListLocationByMissingId();
+                ApiClient.ApiEventListLocationByMissingId event = new ApiClient.ApiEventListLocationByMissingId();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -389,7 +391,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<List<LocationWithBeacon>> call, Throwable t) {
                 Log.d(TAG, "apiListLocationByMissingId(): Error loading from API " + t.getMessage());
-                ApiEventListLocationByMissingId event = new ApiEventListLocationByMissingId();
+                ApiClient.ApiEventListLocationByMissingId event = new ApiClient.ApiEventListLocationByMissingId();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -436,7 +438,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventListMissingResidents event = new ApiEventListMissingResidents();
+                ApiClient.ApiEventListMissingResidents event = new ApiClient.ApiEventListMissingResidents();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -450,18 +452,20 @@ public class ApiGateway {
                         return;
                     }
                     if (response.code() == 404) {
-                        Log.d(TAG, "No trail for this missing case.");
+                        Log.d(TAG, "No missing case.");
                     }
                 }
                 EventBus.getDefault().post(event);
+                EventBus.getDefault().post(new EventInProgress(false));
             }
 
             @Override
             public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
                 Log.d(TAG, "apiMissingResidents(): Error loading from API " + t.getMessage());
-                ApiEventListMissingResidents event = new ApiEventListMissingResidents();
+                ApiClient.ApiEventListMissingResidents event = new ApiClient.ApiEventListMissingResidents();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
+                EventBus.getDefault().post(new EventInProgress(false));
             }
         });
     }
@@ -487,7 +491,7 @@ public class ApiGateway {
                 Log.d(TAG, call.request().toString());
                 Log.d(TAG, response.toString());
 
-                ApiEventListRelativeResidents event = new ApiEventListRelativeResidents();
+                ApiClient.ApiEventListRelativeResidents event = new ApiClient.ApiEventListRelativeResidents();
                 event.setResponded(true);
                 event.setStatusCode(response.code());
                 if (response.isSuccessful()) {
@@ -510,7 +514,7 @@ public class ApiGateway {
             @Override
             public void onFailure(Call<List<ResidentWithMissing>> call, Throwable t) {
                 Log.d(TAG, "apiMissingResidents(): Error loading from API " + t.getMessage());
-                ApiEventListRelativeResidents event = new ApiEventListRelativeResidents();
+                ApiClient.ApiEventListRelativeResidents event = new ApiClient.ApiEventListRelativeResidents();
                 event.setMessage(t.getMessage());
                 EventBus.getDefault().post(event);
             }
@@ -518,4 +522,50 @@ public class ApiGateway {
         return true;
     }
 
+    public static void apiListSetting() {
+        if (!application.isInternetConnected()) return;
+        if (application.getAuthToken(false) == null) {
+            EventBus.getDefault().post(new EventTokenExpired(true));
+            return;
+        }
+
+        String token = application.getAuthToken(false).getToken();
+        apiInterface.listSetting(token).enqueue(new Callback<List<Setting>>() {
+            @Override
+            public void onResponse(Call<List<Setting>> call, Response<List<Setting>> response) {
+                Log.d(TAG, call.request().toString());
+                Log.d(TAG, response.toString());
+
+                ApiClient.ApiEventListSettings event = new ApiClient.ApiEventListSettings();
+                event.setResponded(true);
+                event.setStatusCode(response.code());
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Downloaded settings: " + response.body().toString());
+                    event.setSuccessful(true);
+                    event.setSettings(response.body());
+//                    for (NearbyItem b : response.body()) {
+//                        allMissingBeaconMap.put((b.getUuid() + "," + b.getMajor() + "," + b.getMinor()).toUpperCase(), b);
+//                    }
+                } else {
+                    if (response.code() == 401) {
+                        Log.d(TAG, "Token expired.");
+                        EventBus.getDefault().post(new EventTokenExpired(true));
+                        return;
+                    }
+                    event.setMessage(response.message());
+                }
+                EventBus.getDefault().post(event);
+//                EventBus.getDefault().post(new EventInProgress(false));
+            }
+
+            @Override
+            public void onFailure(Call<List<Setting>> call, Throwable t) {
+                Log.d(TAG, "apiListSetting(): Error loading from API " + t.getMessage());
+
+                ApiClient.ApiEventListBeaconsOfMissing event = new ApiClient.ApiEventListBeaconsOfMissing();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+    }
 }

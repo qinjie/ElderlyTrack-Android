@@ -29,8 +29,7 @@ import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventForgotPassword;
-import edu.np.ece.elderlytrack.api.ApiEventLogin;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
 
@@ -124,7 +123,7 @@ public class LoginFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventLoginWithEmail(ApiEventLogin event) {
+    public void onApiEventLoginWithEmail(ApiClient.ApiEventLogin event) {
         Log.d(TAG, "onApiEventLoginWithEmail()");
         if (event.isSuccessful()) {
             Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
@@ -137,7 +136,7 @@ public class LoginFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventForgotPassword(ApiEventForgotPassword event) {
+    public void onApiEventForgotPassword(ApiClient.ApiEventForgotPassword event) {
         Log.d(TAG, "onApiEventForgotPassword()");
         Toast.makeText(getContext(), event.getMessage(), Toast.LENGTH_SHORT).show();
         if (event.isSuccessful()) {
@@ -190,100 +189,6 @@ public class LoginFragment extends Fragment {
         }
         ApiGateway.apiForgotPassword(atvEmail.getText().toString().trim());
     }
-
-
-//    private void apiLoginWithEmail() {
-//        BeaconApplication application = mListener.getBaseApplication();
-//        ApiInterface apiInterface = mListener.getApiInterface();
-//
-//        if (!application.isInternetConnected) {
-//            Log.d(TAG, "No internet connection");
-//            return;
-//        }
-//
-//        String email = atvEmail.getText().toString();
-//        String pwd = password.getText().toString();
-//
-//        JsonObject obj = new JsonObject();
-//        obj.addProperty("email", email);
-//        obj.addProperty("password", pwd);
-//
-//        String contentType = "application/json";
-//        EventBus.getDefault().post(new EventInProgress(true));
-//        apiInterface.loginWithEmail(contentType, obj).enqueue(new Callback<AuthToken>() {
-//            @Override
-//            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-//                Log.d(TAG, call.request().toString());
-//                Log.d(TAG, response.toString());
-//
-//                if (response.isSuccessful()) {
-//                    AuthToken authToken = response.body();
-//                    Log.d(TAG, "Login successful: " + authToken.toString());
-//                    application.session.saveAuthToken(authToken);
-//                    application.getAuthToken(true);
-//                    Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
-//                    EventBus.getDefault().post(new EventInProgress(false));
-//                    getActivity().onBackPressed();
-//                } else {
-//                    Log.d(TAG, "Token expired.");
-//                    Toast.makeText(getContext(), "Login unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
-//                    EventBus.getDefault().post(new EventInProgress(false));
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<AuthToken> call, Throwable t) {
-//                Log.d(TAG, "API Error:" + t.getMessage());
-//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
-//
-//    private void apiForgotPassword() {
-//        BeaconApplication application = mListener.getBaseApplication();
-//        ApiInterface apiInterface = mListener.getApiInterface();
-//
-//        if (!application.isInternetConnected) {
-//            Log.d(TAG, "No internet connection");
-//            return;
-//        }
-//
-//        String email = atvEmail.getText().toString();
-//        String pwd = password.getText().toString();
-//
-//        JsonObject obj = new JsonObject();
-//        obj.addProperty("email", email);
-//        obj.addProperty("password", pwd);
-//
-//        String contentType = "application/json";
-//        EventBus.getDefault().post(new EventInProgress(true));
-//        apiInterface.loginWithEmail(contentType, obj).enqueue(new Callback<AuthToken>() {
-//            @Override
-//            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-//                Log.d(TAG, call.request().toString());
-//                Log.d(TAG, response.toString());
-//
-//                if (response.isSuccessful()) {
-//                    AuthToken authToken = response.body();
-//                    Log.d(TAG, "Login successful: " + authToken.toString());
-//                    application.session.saveAuthToken(authToken);
-//                    application.getAuthToken(true);
-//                    Toast.makeText(getContext(), "Reset code has been emailed to you.", Toast.LENGTH_SHORT).show();
-//                    EventBus.getDefault().post(new EventInProgress(false));
-//                } else {
-//                    Log.d(TAG, "Token expired.");
-//                    Toast.makeText(getContext(), "Reset password is unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
-//                    EventBus.getDefault().post(new EventInProgress(false));
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<AuthToken> call, Throwable t) {
-//                Log.d(TAG, "Login API Error:" + t.getMessage());
-//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
 
     @Override
     public void onResume() {

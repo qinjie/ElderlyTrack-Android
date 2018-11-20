@@ -24,7 +24,7 @@ import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiEventResetPassword;
+import edu.np.ece.elderlytrack.api.ApiClient;
 import edu.np.ece.elderlytrack.api.ApiGateway;
 
 public class ResetPasswordFragment extends Fragment {
@@ -103,7 +103,7 @@ public class ResetPasswordFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onApiEventResetPassword(ApiEventResetPassword event) {
+    public void onApiEventResetPassword(ApiClient.ApiEventResetPassword event) {
         Log.d(TAG, "onApiEventResetPassword()");
         if (event.isSuccessful()) {
             Toast.makeText(getContext(), "Reset password successful", Toast.LENGTH_SHORT).show();
