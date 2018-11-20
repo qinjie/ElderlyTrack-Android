@@ -27,7 +27,11 @@
 2. Flash screen upon starting of app
 3. About app and About us screen
 
- 
+## App Release
+
+App is signed by android_npsoeapps.keystore
+
+
 ## Key 3rd Party Libraries
 
 1. AltBeacon library `org.altbeacon:android-beacon-library`
