@@ -79,11 +79,11 @@ public class ResidentBeaconRecyclerViewAdapter extends RecyclerView.Adapter<Resi
         if (holder.ctvStatus.isChecked()) {
             holder.ctvStatus.setText("Enabled");
             holder.ctvStatus.setCheckMarkDrawable(android.R.drawable.checkbox_on_background);
-            holder.ctvStatus.setBackgroundColor(mContext.getColor(android.R.color.holo_green_light));
+            holder.ctvStatus.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_green_light));
         } else {
             holder.ctvStatus.setText("Disabled");
             holder.ctvStatus.setCheckMarkDrawable(android.R.drawable.checkbox_off_background);
-            holder.ctvStatus.setBackgroundColor(mContext.getColor(android.R.color.transparent));
+            holder.ctvStatus.setBackgroundColor(mContext.getResources().getColor(android.R.color.transparent));
         }
     }
 

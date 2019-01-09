@@ -76,7 +76,7 @@
                     android:imeActionId="6"
                     android:imeActionLabel="@string/action_sign_in_short"
                     android:imeOptions="actionDone"
-                    android:inputType="textPassword"
+                    android:inputType="textNoSuggestions|textVisiblePassword"
                     android:maxLines="1"
                     android:singleLine="true"
                     android:text="" />

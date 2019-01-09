@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ElderlyTrack</string>
+    <string name="app_name">Elderly Track</string>
     <string name="title_beacons">Beacons</string>
     <string name="title_nearby">Nearby</string>
     <string name="title_missing">Missing</string>

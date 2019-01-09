@@ -343,6 +343,7 @@ public class BeaconApplication extends Application
     public void onApiBeaconsOfMissingEvent(ApiClient.ApiEventListBeaconsOfMissing event) {
         Log.i(TAG, "onApiBeaconsOfMissingEvent(): " + event.toString());
         List<NearbyItem> list = event.getMissingBeacons();
+        if (list == null) return;
         for (NearbyItem b : list) {
             allMissingBeaconMap.put((b.getUuid() + "," + b.getMajor() + "," + b.getMinor()).toUpperCase(), b);
         }

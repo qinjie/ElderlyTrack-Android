@@ -180,7 +180,28 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-//    /*
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            //Title bar back press triggers onBackPressed()
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    //Both navigation bar back press and title bar back press will trigger this method
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
+            getSupportFragmentManager().popBackStack();
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
+
+    //    /*
 //     * Work with Altbeacon BeaconManager
 //     */
 //    @Override
