@@ -1,6 +1,8 @@
 package edu.np.ece.elderlytrack.utils;
 
+import android.app.Activity;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -14,6 +16,15 @@ import static java.util.Calendar.YEAR;
 
 public class Utils {
     private static final String TAG = Utils.class.getSimpleName();
+
+    public static void hideSoftKeyboard(Activity activity) {
+        final InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        if (inputMethodManager.isActive()) {
+            if (activity.getCurrentFocus() != null) {
+                inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+            }
+        }
+    }
 
     public static String getLocalDateFromUtc(String utcDate, String oldDateFormat, String newDateFormat) {
         String localDate;

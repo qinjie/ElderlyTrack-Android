@@ -204,7 +204,8 @@ public class Resident implements Serializable {
 
     public String getRemarkOrComment() {
         if (remark == null || remark.isEmpty()) {
-            return "No description available.";
+            return "";
+//            return "No description available.";
         } else {
             return remark;
         }

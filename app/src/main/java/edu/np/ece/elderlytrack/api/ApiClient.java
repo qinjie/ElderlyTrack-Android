@@ -223,4 +223,25 @@ public class ApiClient {
             this.authToken = authToken;
         }
     }
+
+    public static class ApiEventGetResident extends ApiEvent {
+
+        public ApiEventGetResident() {
+        }
+
+        public ApiEventGetResident(ResidentWithMissing resident) {
+            this.resident = resident;
+        }
+
+        ResidentWithMissing resident = null;
+
+        public ResidentWithMissing getResident() {
+            return resident;
+        }
+
+        public void setResident(ResidentWithMissing resident) {
+            this.resident = resident;
+        }
+    }
+
 }

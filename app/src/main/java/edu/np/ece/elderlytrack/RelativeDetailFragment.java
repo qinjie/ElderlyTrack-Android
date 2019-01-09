@@ -1,10 +1,12 @@
 package edu.np.ece.elderlytrack;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -28,22 +30,23 @@ import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import edu.np.ece.elderlytrack.api.ApiInterface;
+import edu.np.ece.elderlytrack.api.ApiClient;
+import edu.np.ece.elderlytrack.api.ApiGateway;
 import edu.np.ece.elderlytrack.api.EventInProgress;
-import edu.np.ece.elderlytrack.model.AuthToken;
+import edu.np.ece.elderlytrack.api.EventMissingCaseUpdate;
 import edu.np.ece.elderlytrack.model.Missing;
 import edu.np.ece.elderlytrack.model.ResidentWithMissing;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * A fragment representing a list of Items.
  */
-public class RelativeDetailFragment extends Fragment {
+public class RelativeDetailFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
     private static final String TAG = RelativeDetailFragment.class.getSimpleName();
     private FragmentListener mListener;
+    private FragmentManager fragmentManager;
 
+    private final String STATUS_MISSING = "Missing";
+    private final String STATUS_PRESENT = "Present";
     private boolean toBeRefreshed = false;
     ResidentWithMissing item;
 
@@ -75,6 +78,8 @@ public class RelativeDetailFragment extends Fragment {
     Button btBeacons;
     @BindView(R.id.btTrail)
     Button btTrail;
+    @BindView(R.id.swipe_container)
+    SwipeRefreshLayout swipeLayout;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -94,7 +99,6 @@ public class RelativeDetailFragment extends Fragment {
     @OnClick(R.id.btBeacons)
     public void onClickBeacons(View view) {
         Fragment fragment = ResidentBeaconsFragment.newInstance(item.getId());
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.frame_layout, fragment);
         transaction.addToBackStack(null);
@@ -106,7 +110,7 @@ public class RelativeDetailFragment extends Fragment {
     public void onClickTrail(View view) {
         if (item.getActiveMissing() != null) {
             Fragment fragment = MissingLocationsFragment.newInstance(item.getActiveMissing().getId());
-            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+//            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.replace(R.id.frame_layout, fragment);
             transaction.addToBackStack(null);
@@ -124,7 +128,7 @@ public class RelativeDetailFragment extends Fragment {
             return;
 
         // To refresh UI when returned to this fragment
-        toBeRefreshed = true;
+//        toBeRefreshed = true;
 
         Fragment fragment = null;
         if (isChecked) {
@@ -132,7 +136,7 @@ public class RelativeDetailFragment extends Fragment {
         } else {
             fragment = CloseMissingFragment.newInstance(item.getId());
         }
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+//        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.frame_layout, fragment);
         transaction.addToBackStack(null);
@@ -148,6 +152,7 @@ public class RelativeDetailFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_relative_detail, container, false);
         // bind view using butter knife
         unbinder = ButterKnife.bind(this, view);
+        swipeLayout.setOnRefreshListener(this);
         updateUI();
 
         return view;
@@ -195,6 +200,7 @@ public class RelativeDetailFragment extends Fragment {
         super.onAttach(context);
         if (context instanceof FragmentListener) {
             mListener = (FragmentListener) context;
+            fragmentManager = getActivity().getSupportFragmentManager();
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnListFragmentInteractionListener");
@@ -213,7 +219,7 @@ public class RelativeDetailFragment extends Fragment {
         mListener.setActionBarTitle("Relative Details", true);
         if (this.toBeRefreshed) {
             // Refresh item value
-            apiGetResident();
+            ApiGateway.apiGetResident(item.getId());
         }
     }
 
@@ -231,50 +237,91 @@ public class RelativeDetailFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onInProgressEvent(EventInProgress event) {
+        Log.d(TAG, "EventInProgress");
         progressBar.setVisibility(event.isInProgress() ? View.VISIBLE : View.GONE);
     }
 
-    private void apiGetResident() {
-        BeaconApplication application = mListener.getBaseApplication();
-        ApiInterface apiInterface = mListener.getApiInterface();
-        if (!application.isInternetConnected) {
-            Log.d(TAG, "No internet connection");
-            return;
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onApiEventGetResident(ApiClient.ApiEventGetResident event) {
+        Log.d(TAG, "ApiClient.ApiEventGetResident");
+        if (event.isSuccessful()) {
+            Toast.makeText(getContext(), "Get resident successful", Toast.LENGTH_SHORT).show();
+            item = event.getResident();
+            updateUI();
         }
-
-        AuthToken authoToken = application.getAuthToken(true);
-        if (authoToken == null || authoToken.getToken() == null) {
-            Log.e(TAG, "Token not found");
-            return;
+        progressBar.setVisibility(View.GONE);
+        if (swipeLayout.isRefreshing()) {
+            swipeLayout.setRefreshing(false);
         }
-
-        String token = authoToken.getToken();
-        String contentType = "application/json";
-        EventBus.getDefault().post(new EventInProgress(true));
-        apiInterface.getResident(token, item.getId()).enqueue(new Callback<ResidentWithMissing>() {
-            @Override
-            public void onResponse(Call<ResidentWithMissing> call, Response<ResidentWithMissing> response) {
-                Log.d(TAG, call.request().toString());
-                int statusCode = response.code();
-                Log.d(TAG, response.toString());
-                if (response.isSuccessful()) {
-                    Toast.makeText(getContext(), "Get resident successful", Toast.LENGTH_SHORT).show();
-                    item = response.body();
-                    updateUI();
-                    EventBus.getDefault().post(new EventInProgress(false));
-                } else {
-                    Log.d(TAG, "Token expired.");
-                    Toast.makeText(getContext(), "Get resident unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
-                    EventBus.getDefault().post(new EventInProgress(false));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResidentWithMissing> call, Throwable t) {
-                Log.d(TAG, "API Error:" + t.getMessage());
-                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
+
+    @Subscribe(sticky = true)
+    public void onMissingCaseUpdate(EventMissingCaseUpdate event) {
+        Log.d(TAG, "EventMissingCaseUpdate");
+//        Toast.makeText(getContext(), "EventMissingCaseUpdate: " + event.getRemark(), Toast.LENGTH_SHORT).show();
+
+        if (event.isMissing()) {
+            switch1.setChecked(true);
+            tvStatus.setText(STATUS_MISSING);
+            tvStatus.setTextColor(Color.RED);
+            tvMissingRemark.setText(event.getRemark());
+        } else {
+            switch1.setChecked(false);
+            tvStatus.setText(STATUS_PRESENT);
+            tvStatus.setTextColor(Color.BLACK);
+            tvMissingRemark.setText("");
+            tvLastSeenTime.setText("");
+            tvLastSeenLocation.setText("");
+        }
+    }
+
+    @Override
+    public void onRefresh() {
+        ApiGateway.apiGetResident(item.getId());
+    }
+
+
+//    private void apiGetResident() {
+//        BeaconApplication application = mListener.getBaseApplication();
+//        ApiInterface apiInterface = mListener.getApiInterface();
+//        if (!application.isInternetConnected) {
+//            Log.d(TAG, "No internet connection");
+//            return;
+//        }
+//
+//        AuthToken authoToken = application.getAuthToken(true);
+//        if (authoToken == null || authoToken.getToken() == null) {
+//            Log.e(TAG, "Token not found");
+//            return;
+//        }
+//
+//        String token = authoToken.getToken();
+//        String contentType = "application/json";
+//        EventBus.getDefault().post(new EventInProgress(true));
+//        apiInterface.getResident(token, item.getId()).enqueue(new Callback<ResidentWithMissing>() {
+//            @Override
+//            public void onResponse(Call<ResidentWithMissing> call, Response<ResidentWithMissing> response) {
+//                Log.d(TAG, call.request().toString());
+//                int statusCode = response.code();
+//                Log.d(TAG, response.toString());
+//                if (response.isSuccessful()) {
+//                    Toast.makeText(getContext(), "Get resident successful", Toast.LENGTH_SHORT).show();
+//                    item = response.body();
+//                    updateUI();
+//                    EventBus.getDefault().post(new EventInProgress(false));
+//                } else {
+//                    Log.d(TAG, "Token expired.");
+//                    Toast.makeText(getContext(), "Get resident unsuccessful. Status code = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
+//                    EventBus.getDefault().post(new EventInProgress(false));
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<ResidentWithMissing> call, Throwable t) {
+//                Log.d(TAG, "API Error:" + t.getMessage());
+//                Toast.makeText(getContext(), "API Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
 
 }

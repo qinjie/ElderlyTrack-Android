@@ -1,6 +1,7 @@
 package edu.np.ece.elderlytrack.api;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
@@ -567,5 +568,64 @@ public class ApiGateway {
                 EventBus.getDefault().post(event);
             }
         });
+    }
+
+    public static boolean apiGetResident(int resident_id) {
+        if (!application.isInternetConnected()) return false;
+        AuthToken authToken = application.getAuthToken(true);
+        if (authToken == null || authToken.getToken() == null) {
+            EventBus.getDefault().post(new EventTokenExpired(true));
+            Log.e(TAG, "Token not found");
+            return false;
+        }
+        if (authToken.getUser() == null) {
+            Log.e(TAG, "User not authorized");
+            return false;
+        }
+
+        AuthToken authoToken = application.getAuthToken(true);
+        if (authoToken == null || authoToken.getToken() == null) {
+            Log.e(TAG, "Token not found");
+            return false;
+        }
+
+        String token = authoToken.getToken();
+        String contentType = "application/json";
+        EventBus.getDefault().post(new EventInProgress(true));
+
+        apiInterface.getResident(token, resident_id).enqueue(new Callback<ResidentWithMissing>() {
+            @Override
+            public void onResponse(Call<ResidentWithMissing> call, Response<ResidentWithMissing> response) {
+                Log.d(TAG, call.request().toString());
+
+                ApiClient.ApiEventGetResident event = new ApiClient.ApiEventGetResident();
+                event.setResponded(true);
+                event.setStatusCode(response.code());
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Downloaded relative residents: " + response.body().toString());
+                    event.setSuccessful(true);
+                    event.setResident(response.body());
+                } else {
+                    if (response.code() == 401) {
+                        Log.d(TAG, "Token expired.");
+                        EventBus.getDefault().post(new EventTokenExpired(true));
+                        return;
+                    }
+                    if (response.code() == 404) {
+                        Log.d(TAG, "No relative resident for current user.");
+                    }
+                }
+                EventBus.getDefault().post(event);
+            }
+
+            @Override
+            public void onFailure(Call<ResidentWithMissing> call, Throwable t) {
+                Log.d(TAG, "apiGetResident(): Error loading from API " + t.getMessage());
+                ApiClient.ApiEventGetResident event = new ApiClient.ApiEventGetResident();
+                event.setMessage(t.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+        return true;
     }
 }
